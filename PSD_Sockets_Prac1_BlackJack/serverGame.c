@@ -115,6 +115,8 @@ int main(int argc, char *argv[]){
 	unsigned int clientLength;			/** Length of client structure */
 	tThreadArgs *threadArgs; 			/** Thread parameters */
 	pthread_t threadID;					/** Thread ID */
+        tSession sesion;
+        int bytesRead;
 
         // Seed
         srand(time(0));
@@ -152,19 +154,22 @@ int main(int argc, char *argv[]){
 
 	// Accept!
 	socketPlayer1 = accept(socketfd, (struct sockaddr *) &player1Address, &clientLength);
-
         if (socketPlayer1 < 0)
-		showError("ERROR en el Accept1");	 
+		showError("ERROR en el Accept 1");	 
 	
         socketPlayer2 = accept(socketfd, (struct sockaddr *) &player2Address, &clientLength);
 
         if (socketPlayer2 < 0)
-		showError("ERROR en el Accept2");
+		showError("ERROR en el Accept 2");
 
-        tSession sesion;
+        bytesRead=recv(socketPlayer1, sesion.player1Name, 15, NULL);
+        if(bytesRead<0)
+                showError("ERROR lectura de nombre 1");	 
+
+        bytesRead=recv(socketPlayer2, sesion.player2Name, 15, NULL);
+        if(bytesRead<0)
+                showError("ERROR lectura de nombre 2");	 
 
         initSession(&sesion);
-
-
 	
 }
