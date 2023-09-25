@@ -117,6 +117,7 @@ int main(int argc, char *argv[]){
 	pthread_t threadID;					/** Thread ID */
         tSession sesion;
         int bytesRead;
+        int end=0, turno=0;
 
         // Seed
         srand(time(0));
@@ -162,14 +163,26 @@ int main(int argc, char *argv[]){
         if (socketPlayer2 < 0)
 		showError("ERROR en el Accept 2");
 
-        bytesRead=recv(socketPlayer1, sesion.player1Name, 15, NULL);
+        bytesRead=recv(socketPlayer1, sesion.player1Name, sizeof(tString), 0);
         if(bytesRead<0)
                 showError("ERROR lectura de nombre 1");	 
 
-        bytesRead=recv(socketPlayer2, sesion.player2Name, 15, NULL);
+        bytesRead=recv(socketPlayer2, sesion.player2Name, sizeof(tString), 0);
         if(bytesRead<0)
                 showError("ERROR lectura de nombre 2");	 
 
         initSession(&sesion);
-	
+	printSession(&sesion);
+
+        while(!end){
+                if(turno%2){    // Turno JugB
+
+                }else{          // Turno JugA
+                        
+                        send(socketPlayer1, TURN_BET, sizeof(TURN_BET), 0);
+                        send(socketPlayer1, &sesion.player1Deck, sizeof(tDeck), 0);
+                }
+        }
+
+
 }
