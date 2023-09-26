@@ -117,7 +117,9 @@ int main(int argc, char *argv[]){
 	pthread_t threadID;					/** Thread ID */
         tSession sesion;
         int bytesRead;
-        int end=0, turno=0;
+        int end=0;
+        tPlayer turno;
+        int apuestaCorrecta;
 
         // Seed
         srand(time(0));
@@ -175,13 +177,42 @@ int main(int argc, char *argv[]){
 	printSession(&sesion);
 
         while(!end){
-                if(turno%2){    // Turno JugB
-
-                }else{          // Turno JugA
-                        
+                if(turno=player1){
                         send(socketPlayer1, TURN_BET, sizeof(TURN_BET), 0);
-                        send(socketPlayer1, &sesion.player1Deck, sizeof(tDeck), 0);
+                        send(socketPlayer1, &sesion.player1Stack, sizeof(tDeck), 0);
+                        recv(socketPlayer1, &sesion.player1Bet, sizeof(unsigned int), 0);
+
+                        apuestaCorrecta=FALSE;
+                        while(!apuestaCorrecta){
+                                if(sesion.player1Bet<sesion.player1Stack){// Apuesta Correcta
+                                        apuestaCorrecta=TRUE;
+                                        send(socketPlayer1, TURN_BET_OK, sizeof(TURN_BET), 0);
+                                }else{// Apuesta incorreota       
+                                        send(socketPlayer1, TURN_BET, sizeof(TURN_BET), 0);
+                                }
+                        }
                 }
+                else if(turno=player2){          // Turno JugB
+                        send(socketPlayer2, TURN_BET, sizeof(TURN_BET), 0);
+                        send(socketPlayer2, &sesion.player2Stack, sizeof(tDeck), 0);
+                        recv(socketPlayer2, &sesion.player2Bet, sizeof(unsigned int), 0);
+
+                        apuestaCorrecta=FALSE;
+                        while(!apuestaCorrecta){
+                                if(sesion.player2Bet<sesion.player2Stack){// Apuesta Correcta
+                                        apuestaCorrecta=TRUE;
+                                        send(socketPlayer2, TURN_BET_OK, sizeof(TURN_BET), 0);
+                                }else{// Apuesta incorreota       
+                                        send(socketPlayer2, TURN_BET, sizeof(TURN_BET), 0);
+                                }
+                        }
+                }
+                else{
+                        perror("ERROR turno\n");
+                }
+                
+                turno= getNextPlayer(turno);
+
         }
 
 
