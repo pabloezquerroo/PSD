@@ -144,8 +144,9 @@ int main(int argc, char *argv[]){
 	unsigned int endOfGame;				/** Flag to control the end of the game */
 	tString playerName;					/** Name of the player */
 	unsigned int code;					/** Code */
-
-
+        int nameLength;
+        unsigned int stack;                                     /** Monedas jugador*/
+        unsigned int apuesta;
 		// Check arguments!
 		if (argc != 3){
 			fprintf(stderr,"ERROR wrong number of arguments\n");
@@ -158,6 +159,61 @@ int main(int argc, char *argv[]){
 
 		// Get the port
 		port = atoi(argv[2]);
+
+                //Create Socket
+                socketfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+
+                // Check if the socket has been successfully created
+		if (socketfd < 0)
+			showError("ERROR while creating the socket");
+
+                // Fill server address structure
+		memset(&server_address, 0, sizeof(server_address));
+		server_address.sin_family = AF_INET;
+		server_address.sin_addr.s_addr = inet_addr(serverIP);
+		server_address.sin_port = htons(port);
+
+                // Connect with server
+		if (connect(socketfd, (struct sockaddr *) &server_address, sizeof(server_address)) < 0)
+			showError("ERROR while establishing connection");
+
+                // Init and read the message
+		printf("Enter your name: ");
+		memset(playerName, 0, STRING_LENGTH);
+		fgets(playerName, STRING_LENGTH-1, stdin);
+
+		// Send message to the server side
+                send(socketfd, sizeof(playerName), sizeof(int), 0);
+		nameLength = send(socketfd, &playerName, strlen(playerName), 0);
+
+                // Check the number of bytes sent
+		if (nameLength < 0)
+			showError("ERROR while writing to the socket");
+
+                //Recibo TURN_BET y stack
+                recv(socketfd, &code, sizeof(int), 0);
+                //printf("%d\n",code);
+                showCode(code);
+                recv(socketfd, &stack, sizeof(int), 0);
+                printf("OLEEE\n");
+                //Apuesto
+                while(code==TURN_BET){
+                        printf("Introduzca su apuesta: ");
+                        memset(apuesta, 0, sizeof(unsigned int));
+                        fgets(apuesta, sizeof(unsigned int), stdin);
+                        send(socketfd, apuesta, sizeof(unsigned int), 0);
+                }
+
+
+
+
+
+
+
+                while(TURN_BET)
+
+                close(socketfd);
+
 
 		
 }
