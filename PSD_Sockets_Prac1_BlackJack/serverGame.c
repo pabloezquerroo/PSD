@@ -101,6 +101,34 @@ unsigned int getRandomCard (tDeck* deck){
 	return card;
 }
 
+void pedirApuesta(unsigned int *playerStack, unsigned int *playerBet, int socketPlayer){
+        int localTurnBet= TURN_BET;
+        int localTurnBetOk= TURN_BET_OK;
+        int apuestaCorrecta;
+
+        send(socketPlayer, &localTurnBet, sizeof(localTurnBet), 0);
+        send(socketPlayer, playerStack, 4, 0);
+//      printf("&:%d\n", &playerStack);
+//      printf("_:%d\n", *playerStack);
+
+        recv(socketPlayer, playerBet, 4, 0);
+//      printf("&:%d\n", &playerBet);
+//      printf("_:%d\n",*playerBet);        
+        
+        apuestaCorrecta=FALSE;
+        while(!apuestaCorrecta){
+                if(*playerBet < *playerStack){ // Apuesta Correcta
+                        printf("apuesta correcta\n");
+                        apuestaCorrecta=TRUE;
+                        send(socketPlayer, localTurnBetOk, sizeof(TURN_BET), 0);
+                }else{ // Apuesta incorrecta      
+                        printf("apuesta incorrecta\n"); 
+                        apuestaCorrecta=FALSE;
+                        send(socketPlayer, localTurnBet, sizeof(localTurnBet), 0);
+                        recv(socketPlayer, playerBet, 4, 0);
+                }
+        }
+}
 
 
 int main(int argc, char *argv[]){
@@ -118,9 +146,6 @@ int main(int argc, char *argv[]){
         tSession sesion;
         int bytesRead;
         int end=0;
-        tPlayer turno;
-        int apuestaCorrecta;
-        int localTurnBet, localTurnBetOk;
 
         // Seed
         srand(time(0));
@@ -180,44 +205,11 @@ int main(int argc, char *argv[]){
 	printSession(&sesion);
 
         while(!end){
-                localTurnBet= TURN_BET;
-                localTurnBetOk= TURN_BET_OK;
-                // Turno JugA
-                send(socketPlayer1, &localTurnBet, sizeof(localTurnBet), 0);
-                printf("turn bet\n");
-                send(socketPlayer1, &sesion.player1Stack, sizeof(int), 0);
-                printf("send stack\n");
-                recv(socketPlayer1, sesion.player1Bet, sizeof(int), 0);
-                printf("%d\n", sesion.player1Bet);
-
-                apuestaCorrecta=FALSE;
-                while(!apuestaCorrecta){
-                        if(sesion.player1Bet<sesion.player1Stack){              // Apuesta Correcta
-                                apuestaCorrecta=TRUE;
-                                send(socketPlayer1, TURN_BET_OK, sizeof(TURN_BET), 0);
-                        }else{                                                  // Apuesta incorrecta       
-                                send(socketPlayer1, localTurnBet, sizeof(localTurnBet), 0);
-                        }
-                }
-
-                // Turno JugB
-                send(socketPlayer2, &localTurnBet, sizeof(localTurnBet), 0);
-                send(socketPlayer2, &sesion.player2Stack, sizeof(int), 0);
-                recv(socketPlayer2, &sesion.player2Bet, sizeof(unsigned int), 0);
-                printf("%d\n", sesion.player2Bet);
-
-                apuestaCorrecta=FALSE;
-                while(!apuestaCorrecta){
-                        if(sesion.player2Bet<sesion.player2Stack){              // Apuesta Correcta
-                                apuestaCorrecta=TRUE;
-                                send(socketPlayer2, TURN_BET_OK, sizeof(TURN_BET), 0);
-                        }else{                                                  // Apuesta incorrecta       
-                                send(socketPlayer2, TURN_BET, sizeof(TURN_BET), 0);
-                        }
-                }
-
-
-
+                pedirApuesta(&sesion.player1Stack, &sesion.player1Bet, socketPlayer1);
+                pedirApuesta(&sesion.player2Stack, &sesion.player2Bet, socketPlayer2);
+                printf("Apuesta player 1: %d\n", sesion.player1Bet);
+                printf("Apuesta player 2: %d\n", sesion.player2Bet);
+                end=TRUE;
         }
 
 

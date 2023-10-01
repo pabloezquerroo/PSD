@@ -191,29 +191,16 @@ int main(int argc, char *argv[]){
 			showError("ERROR while writing to the socket");
 
                 //Recibo TURN_BET y stack
-                recv(socketfd, &code, sizeof(int), 0);
-                //printf("%d\n",code);
-                showCode(code);
-                recv(socketfd, &stack, sizeof(int), 0);
-                printf("OLEEE\n");
+                recv(socketfd, &code, 4, 0);
+                recv(socketfd, &stack, 4, 0);
+
                 //Apuesto
                 while(code==TURN_BET){
-                        printf("Introduzca su apuesta: ");
-                        memset(apuesta, 0, sizeof(unsigned int));
-                        fgets(apuesta, sizeof(unsigned int), stdin);
-                        send(socketfd, apuesta, sizeof(unsigned int), 0);
+                        apuesta=readBet();
+                        send(socketfd, &apuesta, sizeof(apuesta), 0);  
+                        recv(socketfd, &code, 4, 0);
                 }
 
-
-
-
-
-
-
-                while(TURN_BET)
-
                 close(socketfd);
-
-
 		
 }
