@@ -199,6 +199,7 @@ int main(int argc, char *argv[]){
                         apuesta=readBet();
                         send(socketfd, &apuesta, sizeof(apuesta), 0);  
                         recv(socketfd, &code, 4, 0);
+                        showCode(code);
                 }
 
                 close(socketfd);

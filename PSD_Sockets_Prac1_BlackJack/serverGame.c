@@ -118,14 +118,13 @@ void pedirApuesta(unsigned int *playerStack, unsigned int *playerBet, int socket
         apuestaCorrecta=FALSE;
         while(!apuestaCorrecta){
                 if(*playerBet < *playerStack){ // Apuesta Correcta
-                        printf("apuesta correcta\n");
                         apuestaCorrecta=TRUE;
-                        send(socketPlayer, localTurnBetOk, sizeof(TURN_BET), 0);
+                        send(socketPlayer, &localTurnBetOk, sizeof(localTurnBetOk), 0);
                 }else{ // Apuesta incorrecta      
-                        printf("apuesta incorrecta\n"); 
                         apuestaCorrecta=FALSE;
-                        send(socketPlayer, localTurnBet, sizeof(localTurnBet), 0);
+                        send(socketPlayer, &localTurnBet, sizeof(localTurnBet), 0);
                         recv(socketPlayer, playerBet, 4, 0);
+                        
                 }
         }
 }
@@ -191,6 +190,8 @@ int main(int argc, char *argv[]){
         if (socketPlayer2 < 0)
 		showError("ERROR en el Accept 2");
                 
+        initSession(&sesion);
+
         recv(socketPlayer1, bytesRead, sizeof(int), 0);
         bytesRead=recv(socketPlayer1, sesion.player1Name, bytesRead, 0);
         if(bytesRead<0)
@@ -201,7 +202,6 @@ int main(int argc, char *argv[]){
         if(bytesRead<0)
                 showError("ERROR lectura de nombre 2");	 
 
-        initSession(&sesion);
 	printSession(&sesion);
 
         while(!end){
@@ -212,5 +212,5 @@ int main(int argc, char *argv[]){
                 end=TRUE;
         }
 
-
+        return 0;
 }
