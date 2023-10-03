@@ -183,7 +183,8 @@ int main(int argc, char *argv[]){
 		fgets(playerName, STRING_LENGTH-1, stdin);
 
 		// Send message to the server side
-                send(socketfd, sizeof(playerName), sizeof(int), 0);
+                unsigned int tamNombre= sizeof(playerName);
+                send(socketfd, &tamNombre , sizeof(int), 0);
 		nameLength = send(socketfd, &playerName, strlen(playerName), 0);
 
                 // Check the number of bytes sent

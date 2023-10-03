@@ -117,7 +117,7 @@ void pedirApuesta(unsigned int *playerStack, unsigned int *playerBet, int socket
         
         apuestaCorrecta=FALSE;
         while(!apuestaCorrecta){
-                if(*playerBet < *playerStack){ // Apuesta Correcta
+                if(*playerBet <= *playerStack){ // Apuesta Correcta
                         apuestaCorrecta=TRUE;
                         send(socketPlayer, &localTurnBetOk, sizeof(localTurnBetOk), 0);
                 }else{ // Apuesta incorrecta      
@@ -192,23 +192,22 @@ int main(int argc, char *argv[]){
                 
         initSession(&sesion);
 
-        recv(socketPlayer1, bytesRead, sizeof(int), 0);
-        bytesRead=recv(socketPlayer1, sesion.player1Name, bytesRead, 0);
-        if(bytesRead<0)
-                showError("ERROR lectura de nombre 1");	 
+        recv(socketPlayer1, &bytesRead, sizeof(int), 0);
+        recv(socketPlayer1, sesion.player1Name, bytesRead, 0);
 
-        recv(socketPlayer2, bytesRead, sizeof(int), 0);
-        bytesRead=recv(socketPlayer2, sesion.player2Name, bytesRead, 0);
-        if(bytesRead<0)
-                showError("ERROR lectura de nombre 2");	 
+        recv(socketPlayer2, &bytesRead, sizeof(int), 0);
+        recv(socketPlayer2, sesion.player2Name, bytesRead, 0);
+
 
 	printSession(&sesion);
 
         while(!end){
                 pedirApuesta(&sesion.player1Stack, &sesion.player1Bet, socketPlayer1);
                 pedirApuesta(&sesion.player2Stack, &sesion.player2Bet, socketPlayer2);
-                printf("Apuesta player 1: %d\n", sesion.player1Bet);
-                printf("Apuesta player 2: %d\n", sesion.player2Bet);
+                printSession(&sesion);
+
+//                printf("Apuesta player 1: %d\n", sesion.player1Bet);
+//                printf("Apuesta player 2: %d\n", sesion.player2Bet);
                 end=TRUE;
         }
 
