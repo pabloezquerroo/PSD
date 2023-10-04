@@ -144,6 +144,7 @@ int main(int argc, char *argv[]){
 	pthread_t threadID;					/** Thread ID */
         tSession sesion;
         int bytesRead;
+        int puntosJug;
         int end=0;
 
         // Seed
@@ -200,14 +201,26 @@ int main(int argc, char *argv[]){
 
 
 	printSession(&sesion);
+        int localTurnPlay= TURN_PLAY;
+        int localTurnPlayWait= TURN_PLAY_WAIT;
 
         while(!end){
+                //Apuestas
                 pedirApuesta(&sesion.player1Stack, &sesion.player1Bet, socketPlayer1);
                 pedirApuesta(&sesion.player2Stack, &sesion.player2Bet, socketPlayer2);
-                printSession(&sesion);
 
-//                printf("Apuesta player 1: %d\n", sesion.player1Bet);
-//                printf("Apuesta player 2: %d\n", sesion.player2Bet);
+                //Inicio de partida
+                //      TURN_PLAY JugA
+                send(socketPlayer1, &localTurnPlay, sizeof(localTurnPlay), 0);
+                puntosJug=calculatePoints(&sesion.player1Deck);
+                send(socketPlayer1, &puntosJug, sizeof(puntosJug), 0);
+                send(socketPlayer1, &sesion.player1Deck, sizeof(sesion.player1Deck), 0);
+
+                //      TURN_PLAY_WAIT JugB
+                send(socketPlayer1, &localTurnPlayWait, sizeof(localTurnPlayWait), 0);
+                send(socketPlayer1, &puntosJug, sizeof(puntosJug), 0);
+                send(socketPlayer1, &sesion.player1Deck, sizeof(sesion.player1Deck), 0);
+
                 end=TRUE;
         }
 
