@@ -109,11 +109,13 @@ void pedirApuesta(unsigned int *playerStack, unsigned int *playerBet, int socket
         send(socketPlayer, &localTurnBet, sizeof(localTurnBet), 0);
         send(socketPlayer, playerStack, 4, 0);
 //      printf("&:%d\n", &playerStack);
-//      printf("_:%d\n", *playerStack);
+//      printf("*:%d\n", *playerStack);
+//      printf("_:%d\n", playerStack);
 
         recv(socketPlayer, playerBet, 4, 0);
 //      printf("&:%d\n", &playerBet);
-//      printf("_:%d\n",*playerBet);        
+//      printf("*:%d\n",*playerBet);        
+//      printf("_:%d\n",playerBet);        
         
         apuestaCorrecta=FALSE;
         while(!apuestaCorrecta){
@@ -144,7 +146,10 @@ int main(int argc, char *argv[]){
 	pthread_t threadID;					/** Thread ID */
         tSession sesion;
         int bytesRead;
-        int puntosJug;
+
+        unsigned int puntosJug;
+        unsigned int pideCarta;
+
         int end=0;
 
         // Seed
@@ -200,14 +205,15 @@ int main(int argc, char *argv[]){
         recv(socketPlayer2, sesion.player2Name, bytesRead, 0);
 
 
-	printSession(&sesion);
-        int localTurnPlay= TURN_PLAY;
-        int localTurnPlayWait= TURN_PLAY_WAIT;
+        unsigned int localTurnPlay= TURN_PLAY;
+        unsigned int localTurnPlayWait= TURN_PLAY_WAIT;
+        unsigned int localTurnPlayOut= TURN_PLAY_OUT;
 
         while(!end){
                 //Apuestas
                 pedirApuesta(&sesion.player1Stack, &sesion.player1Bet, socketPlayer1);
                 pedirApuesta(&sesion.player2Stack, &sesion.player2Bet, socketPlayer2);
+                printSession(&sesion);
 
                 //Inicio de partida
                 //      TURN_PLAY JugA
@@ -217,9 +223,29 @@ int main(int argc, char *argv[]){
                 send(socketPlayer1, &sesion.player1Deck, sizeof(sesion.player1Deck), 0);
 
                 //      TURN_PLAY_WAIT JugB
-                send(socketPlayer1, &localTurnPlayWait, sizeof(localTurnPlayWait), 0);
-                send(socketPlayer1, &puntosJug, sizeof(puntosJug), 0);
-                send(socketPlayer1, &sesion.player1Deck, sizeof(sesion.player1Deck), 0);
+                send(socketPlayer2, &localTurnPlayWait, sizeof(localTurnPlayWait), 0);
+                send(socketPlayer2, &puntosJug, sizeof(puntosJug), 0);
+                send(socketPlayer2, &sesion.player1Deck, sizeof(sesion.player1Deck), 0);
+
+                //      Recibimos si pide carta el jugador
+                recv(socketPlayer1, &pideCarta, sizeof(pideCarta), 0);
+                if (pideCarta){
+                        
+                        sesion.player1Deck.cards[sesion.player1Deck.numCards]=getRandomCard(&sesion.gameDeck);
+                        sesion.player1Deck.numCards++;
+                        puntosJug= calculatePoints(&sesion.player1Deck);
+                        printDeck(&sesion.player1Deck);
+                        
+
+                        if (puntosJug>21){ // Se ha pasado
+                                send(socketPlayer1, &localTurnPlayOut, sizeof(localTurnPlayOut), 0);
+                        }else{ //puede seguir jugando
+                                send(socketPlayer1, &localTurnPlay, sizeof(localTurnPlay), 0);
+                        }
+                        
+                        send(socketPlayer1, &puntosJug, sizeof(puntosJug), 0);
+                        send(socketPlayer1, &(sesion.player1Deck), sizeof(sesion.player1Deck), 0);
+                }
 
                 end=TRUE;
         }

@@ -146,7 +146,13 @@ int main(int argc, char *argv[]){
 	unsigned int code;					/** Code */
         int nameLength;
         unsigned int stack;                                     /** Monedas jugador*/
-        unsigned int apuesta;
+        unsigned int apuesta;                                   /** Apuesta realizada*/
+        unsigned int turno;                                     /** Codigo par saber si me toca jugar*/
+        unsigned int pedirCarta;                                /** elecion de plantarse del cliente*/
+        unsigned int puntos;                                    /** puntos jugador*/
+        tDeck deck;                                             /** deck jugador*/
+
+
 		// Check arguments!
 		if (argc != 3){
 			fprintf(stderr,"ERROR wrong number of arguments\n");
@@ -201,6 +207,29 @@ int main(int argc, char *argv[]){
                         send(socketfd, &apuesta, sizeof(apuesta), 0);  
                         recv(socketfd, &code, 4, 0);
                         showCode(code);
+                }
+
+                recv(socketfd, &turno, sizeof(turno), 0);
+                recv(socketfd, &puntos, sizeof(puntos), 0);
+                recv(socketfd, &deck, sizeof(deck), 0);
+
+                while(turno == TURN_PLAY){ // Toca jugar
+
+                        pedirCarta= readOption();
+                        send(socketfd, &pedirCarta, sizeof(pedirCarta), 0);
+                        recv(socketfd, &turno, sizeof(turno), 0);
+                        recv(socketfd, &puntos, sizeof(puntos), 0);
+                        recv(socketfd, &deck, sizeof(deck), 0);
+
+                        if (turno==TURN_PLAY_OUT){
+                                printf("Te has pasado\n");
+                                printf("puntos -> %d\n", puntos);
+                                printDeck(&deck);
+                        }else{
+                                printf("Estas dentro\n");
+                                printf("puntos -> %d\n", puntos);
+                                printDeck(&deck);
+                        }
                 }
 
                 close(socketfd);
