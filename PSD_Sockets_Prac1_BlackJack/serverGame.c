@@ -229,7 +229,8 @@ int main(int argc, char *argv[]){
 
                 //      Recibimos si pide carta el jugador
                 recv(socketPlayer1, &pideCarta, sizeof(pideCarta), 0);
-                if (pideCarta){
+
+                while (pideCarta==TURN_PLAY_HIT){
                         
                         sesion.player1Deck.cards[sesion.player1Deck.numCards]=getRandomCard(&sesion.gameDeck);
                         sesion.player1Deck.numCards++;
@@ -239,12 +240,14 @@ int main(int argc, char *argv[]){
 
                         if (puntosJug>21){ // Se ha pasado
                                 send(socketPlayer1, &localTurnPlayOut, sizeof(localTurnPlayOut), 0);
+                                pideCarta=TURN_PLAY_OUT;
                         }else{ //puede seguir jugando
                                 send(socketPlayer1, &localTurnPlay, sizeof(localTurnPlay), 0);
                         }
                         
                         send(socketPlayer1, &puntosJug, sizeof(puntosJug), 0);
                         send(socketPlayer1, &(sesion.player1Deck), sizeof(sesion.player1Deck), 0);
+                        recv(socketPlayer1, &pideCarta, sizeof(pideCarta), 0);
                 }
 
                 end=TRUE;
