@@ -255,3 +255,15 @@ int main(int argc, char *argv[]){
 
         return 0;
 }
+/*
+
+void juega(){
+
+}
+void espera(){
+                send(socketPlayer2, &localTurnPlayWait, sizeof(localTurnPlayWait), 0);
+                send(socketPlayer2, &puntosJug, sizeof(puntosJug), 0);
+                send(socketPlayer2, &sesion.player1Deck, sizeof(sesion.player1Deck), 0);
+}
+
+*/

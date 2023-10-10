@@ -134,6 +134,17 @@ unsigned int readOption (){
 }
 
 
+void tocaJugar(int * socketfd){
+        unsigned int localTurnPlayHit=TURN_PLAY_HIT;
+        unsigned int localTurnPlayStand=TURN_PLAY_STAND;
+        unsigned int opcion = readOption();
+        if(opcion == PLAYER_STAND){   // Se planta
+                send(socketfd, &localTurnPlayStand, sizeof(localTurnPlayStand), 0);
+        }else{  // Pide Carta
+                send(socketfd, &localTurnPlayHit, sizeof(localTurnPlayHit), 0);
+        }
+}
+
 
 int main(int argc, char *argv[]){
 
@@ -148,13 +159,10 @@ int main(int argc, char *argv[]){
         unsigned int stack;                                     /** Monedas jugador*/
         unsigned int apuesta;                                   /** Apuesta realizada*/
         unsigned int turno;                                     /** Codigo par saber si me toca jugar*/
-        unsigned int pedirCarta;                                /** elecion de plantarse del cliente*/
+        unsigned int opcion;                                    /** elecion de plantarse del cliente*/
         unsigned int puntos;                                    /** puntos jugador*/
         tDeck deck;                                             /** deck jugador*/
  
-        unsigned int localTurnPlayHit=TURN_PLAY_HIT;
-        unsigned int localTurnPlayStand=TURN_PLAY_STAND;
-
 
 		// Check arguments!
 		if (argc != 3){
@@ -211,44 +219,56 @@ int main(int argc, char *argv[]){
                         recv(socketfd, &code, 4, 0);
                         showCode(code);
                 }
+//////////
+                while(!endOfGame){
+                        recv(socketfd, &turno, sizeof(turno), 0);
+                        recv(socketfd, &puntos, sizeof(puntos), 0);
+                        recv(socketfd, &deck, sizeof(deck), 0);    
+                        printDeck(&deck);
+                        if(turno==TURN_PLAY){
+                                //pintamos el mensaje
+                                //mandamos la opcion hit o stand
+                        }                  
+                }
 
-                recv(socketfd, &turno, sizeof(turno), 0);
-                recv(socketfd, &puntos, sizeof(puntos), 0);
-                recv(socketfd, &deck, sizeof(deck), 0);
-                if (turno==TURN_PLAY){
-                        pedirCarta= readOption();
-                        if(pedirCarta == PLAYER_STAND){                  // Se planta
+                while(turno==TURN_PLAY_WAIT){
+                        printf("espero\n");
+                        recv(socketfd, &turno, sizeof(turno), 0);
+                }
+                while(turno==TURN_PLAY){
+                        tocaJugar(&socketfd);
+                        recv(socketfd, &turno, sizeof(turno), 0);       // código para saber si me he pasado
+                        recv(socketfd, &puntos, sizeof(puntos), 0);     // nuevos puntos
+                        recv(socketfd, &deck, sizeof(deck), 0);         // nuevo deck
+
+
+
+
+/*
+                        opcion = readOption();
+
+                        if(opcion == PLAYER_STAND){   // Se planta
                                 send(socketfd, &localTurnPlayStand, sizeof(localTurnPlayStand), 0);
-                        }else{
-                                while(pedirCarta == PLAYER_HIT_CARD){ // Pide Carta
-
-                                        send(socketfd, &localTurnPlayHit, sizeof(localTurnPlayHit), 0);// Enviamos elección de apostar
-
-                                        recv(socketfd, &turno, sizeof(turno), 0);       // código para saber si me he pasado
-                                        recv(socketfd, &puntos, sizeof(puntos), 0);     // nuevos puntos
-                                        recv(socketfd, &deck, sizeof(deck), 0);         // nuevo deck
-
-                                        if (turno==TURN_PLAY_OUT){
-                                                printf("Te has pasado\n");
-                                                printf("puntos -> %d\n", puntos);
-                                                printDeck(&deck);
-                                                pedirCarta=PLAYER_STAND;
-
-                                        }else{
-                                                printf("Estas dentro\n");
-                                                printf("puntos -> %d\n", puntos);
-                                                printDeck(&deck);
-                                                pedirCarta=readOption();
-                                        }
+                        }else{  // Pide Carta
+                                send(socketfd, &localTurnPlayHit, sizeof(localTurnPlayHit), 0);
+                                recv(socketfd, &turno, sizeof(turno), 0);       // código para saber si me he pasado
+                                recv(socketfd, &puntos, sizeof(puntos), 0);     // nuevos puntos
+                                recv(socketfd, &deck, sizeof(deck), 0);         // nuevo deck
+                                if (turno==TURN_PLAY_OUT){
+                                        printf("Te has pasado\n");
+                                        printf("puntos -> %d\n", puntos);
+                                        printDeck(&deck);
+                                }else{
+                                        printf("Estas dentro\n");
+                                        printf("puntos -> %d\n", puntos);
+                                        printDeck(&deck);
                                 }
                         }
 
-                }else{
-                        /*
-                        Código del que espera
-                        */
+*/
                 }
 
                 close(socketfd);
 		
 }
+
