@@ -134,16 +134,18 @@ unsigned int readOption (){
 }
 
 
-void tocaJugar(int * socketfd){
+void tocaJugar(int socketfd){
         unsigned int localTurnPlayHit=TURN_PLAY_HIT;
         unsigned int localTurnPlayStand=TURN_PLAY_STAND;
         unsigned int opcion = readOption();
         if(opcion == PLAYER_STAND){   // Se planta
                 send(socketfd, &localTurnPlayStand, sizeof(localTurnPlayStand), 0);
         }else{  // Pide Carta
+                printf("entra\n");
                 send(socketfd, &localTurnPlayHit, sizeof(localTurnPlayHit), 0);
         }
 }
+
 
 
 int main(int argc, char *argv[]){
@@ -160,7 +162,7 @@ int main(int argc, char *argv[]){
         unsigned int apuesta;                                   /** Apuesta realizada*/
         unsigned int turno;                                     /** Codigo par saber si me toca jugar*/
         unsigned int opcion;                                    /** elecion de plantarse del cliente*/
-        unsigned int puntos;                                    /** puntos jugador*/
+        tString mensaje;                                        /** mensaje desde servidor*/
         tDeck deck;                                             /** deck jugador*/
  
 
@@ -170,6 +172,7 @@ int main(int argc, char *argv[]){
 			fprintf(stderr,"Usage:\n$>%s serverIP port\n", argv[0]);
 			exit(0);
 		}
+                endOfGame=0;
 
 		// Get the server address
 		serverIP = argv[1];
@@ -219,29 +222,18 @@ int main(int argc, char *argv[]){
                         recv(socketfd, &code, 4, 0);
                         showCode(code);
                 }
-//////////
+
                 while(!endOfGame){
                         recv(socketfd, &turno, sizeof(turno), 0);
-                        recv(socketfd, &puntos, sizeof(puntos), 0);
+                        printf("turno %d\n", turno);
+                        recv(socketfd, &mensaje, sizeof(mensaje), 0);
                         recv(socketfd, &deck, sizeof(deck), 0);    
                         printDeck(&deck);
-                        if(turno==TURN_PLAY){
-                                //pintamos el mensaje
-                                //mandamos la opcion hit o stand
-                        }                  
+                        if(turno==TURN_PLAY){             // juegas
+                                printf("\n%s\n",mensaje);
+                                tocaJugar(socketfd);
+                        }            
                 }
-
-                while(turno==TURN_PLAY_WAIT){
-                        printf("espero\n");
-                        recv(socketfd, &turno, sizeof(turno), 0);
-                }
-                while(turno==TURN_PLAY){
-                        tocaJugar(&socketfd);
-                        recv(socketfd, &turno, sizeof(turno), 0);       // código para saber si me he pasado
-                        recv(socketfd, &puntos, sizeof(puntos), 0);     // nuevos puntos
-                        recv(socketfd, &deck, sizeof(deck), 0);         // nuevo deck
-
-
 
 
 /*
@@ -266,7 +258,6 @@ int main(int argc, char *argv[]){
                         }
 
 */
-                }
 
                 close(socketfd);
 		
