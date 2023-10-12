@@ -134,14 +134,18 @@ void pedirApuesta(unsigned int *playerStack, unsigned int *playerBet, int socket
 void juega(int socketPlayer, tDeck *playerDeck, tDeck *gameDeck){
         unsigned int localTurnPlay= TURN_PLAY;
         unsigned int localTurnPlayOut= TURN_PLAY_OUT;
+        unsigned int localTurnPlayWait= TURN_PLAY_WAIT;
         unsigned int puntosJug=0;
         unsigned int pideCarta;
         unsigned int finalizoMano=FALSE;
+        int tamMensaje;
         tString mensaje;
         send(socketPlayer, &localTurnPlay, sizeof(localTurnPlay), 0);
         puntosJug=calculatePoints(playerDeck);
         sprintf(mensaje, "Es tu turno, tienes %d puntos.\n", puntosJug);
-        send(socketPlayer, &mensaje, sizeof(mensaje), 0);
+        tamMensaje=sizeof(mensaje);
+        send(socketPlayer, &tamMensaje, 4, 0);
+        send(socketPlayer, &mensaje, tamMensaje, 0);
         send(socketPlayer, playerDeck, sizeof(*playerDeck), 0);
 
 
@@ -151,33 +155,36 @@ void juega(int socketPlayer, tDeck *playerDeck, tDeck *gameDeck){
                 recv(socketPlayer, &pideCarta, sizeof(pideCarta), 0);
                 if(pideCarta==TURN_PLAY_HIT){
                         playerDeck->cards[playerDeck->numCards]=getRandomCard(gameDeck);
-                        playerDeck->numCards++;
+                        (playerDeck->numCards)++;
                         puntosJug= calculatePoints(playerDeck);
-
+                        
                         if (puntosJug>GOAL_GAME){ // Se ha pasado
                                 send(socketPlayer, &localTurnPlayOut, sizeof(localTurnPlayOut), 0);
                                 sprintf(mensaje, "Tienes %d puntos, te has pasado.\n", puntosJug);
-                                send(socketPlayer, &mensaje, sizeof(mensaje), 0);
-                                send(socketPlayer, playerDeck, sizeof(playerDeck), 0);
+                                send(socketPlayer, &tamMensaje, 4, 0);
+                                send(socketPlayer, &mensaje, tamMensaje, 0);
+                                send(socketPlayer, playerDeck, sizeof(*playerDeck), 0);
                                 finalizoMano=TRUE;
                         }else{ //puede seguir jugando
                                 send(socketPlayer, &localTurnPlay, sizeof(localTurnPlay), 0);
                                 sprintf(mensaje, "Puedes seguir jugando, tienes %d puntos.\n", puntosJug);
-                                send(socketPlayer, &mensaje, sizeof(mensaje), 0);
-                                send(socketPlayer, playerDeck, sizeof(playerDeck), 0);
+                                send(socketPlayer, &tamMensaje, 4, 0);
+                                send(socketPlayer, &mensaje, tamMensaje, 0);
+                                send(socketPlayer, playerDeck, sizeof(*playerDeck), 0);
                         }
 
                 }else{
+                        send(socketPlayer, &localTurnPlayWait, sizeof(localTurnPlayOut), 0);
+                        sprintf(mensaje, "Te plantas con %d puntos.\n", puntosJug);
+                        send(socketPlayer, &tamMensaje, 4, 0);
+                        send(socketPlayer, &mensaje, tamMensaje, 0);
+                        send(socketPlayer, playerDeck, sizeof(*playerDeck), 0);
                         finalizoMano=TRUE;
                 }
                 
                 printDeck(playerDeck);
 
         }
-}
-
-void espera(){
-
 }
 
 int compruebaFin(unsigned int *stackA, unsigned int *stackB){
@@ -218,6 +225,7 @@ int main(int argc, char *argv[]){
 	pthread_t threadID;			/** Thread ID */
         tSession sesion;
         int bytesRead;
+        int tamMensaje;
         int ganador;                            /** Player1->0, Player2->1, sigueJugando->2*/                             
         int ganadorMano;
         unsigned int puntosJug;
@@ -284,28 +292,27 @@ int main(int argc, char *argv[]){
         unsigned int localTurnPlay= TURN_PLAY;
         unsigned int localTurnPlayWait= TURN_PLAY_WAIT;
         unsigned int localTurnPlayOut= TURN_PLAY_OUT;
-
-        //Apuestas
-        pedirApuesta(&sesion.player1Stack, &sesion.player1Bet, socketPlayer1);
-        pedirApuesta(&sesion.player2Stack, &sesion.player2Bet, socketPlayer2);
-        printSession(&sesion);
+        unsigned int localTurnPlayRivalDone= TURN_PLAY_RIVAL_DONE;
 
         while(ganador==-1){
+                //Apuestas
+                pedirApuesta(&sesion.player1Stack, &sesion.player1Bet, socketPlayer1);
+                pedirApuesta(&sesion.player2Stack, &sesion.player2Bet, socketPlayer2);
+                printSession(&sesion);
+                
                 //Inicio de partida
                 if(starterPlayer==player1){
-                        juega(socketPlayer1, &sesion.player1Deck, &sesion.gameDeck);                
-                        espera();
-                        juega(socketPlayer1, &sesion.player1Deck, &sesion.gameDeck);
-                        espera();
+                        juega(socketPlayer1, &sesion.player1Deck, &sesion.gameDeck); 
+                        juega(socketPlayer2, &sesion.player2Deck, &sesion.gameDeck);
+                        send(socketPlayer1, &localTurnPlayRivalDone, sizeof(localTurnPlayRivalDone), 0);
+                        send(socketPlayer2, &localTurnPlayRivalDone, sizeof(localTurnPlayRivalDone), 0);
+
                 }else{
                         juega(socketPlayer2, &sesion.player2Deck, &sesion.gameDeck);                
-                        espera();
-                        juega(socketPlayer1, &sesion.player1Deck, &sesion.gameDeck);                
-                        espera();
+                        juega(socketPlayer1, &sesion.player1Deck, &sesion.gameDeck);         
+                        send(socketPlayer2, &localTurnPlayRivalDone, sizeof(localTurnPlayRivalDone), 0);
+       
                 }
-                clearDeck(&sesion.player1Deck);
-                clearDeck(&sesion.player2Deck);
-               
                 ganadorMano= compruebaGanadorMano(&sesion.player1Deck, &sesion.player2Deck);
                
                 unsigned int ganancias= sesion.player1Bet + sesion.player2Bet;
@@ -315,24 +322,46 @@ int main(int argc, char *argv[]){
                         sesion.player1Stack+= sesion.player2Bet;
                         sesion.player2Stack-= sesion.player2Bet;
                         sprintf(mensajeGana, "Has ganado la mano, ganas %d monedas\n", sesion.player2Bet);
-                        send(socketPlayer1, mensajeGana, sizeof(mensajeGana), 0);
+                        tamMensaje=sizeof(mensajeGana);
+                        send(socketPlayer1, &tamMensaje, 4, 0);
+                        send(socketPlayer1, &mensajeGana, tamMensaje, 0);
+                        send(socketPlayer1, &sesion.player1Deck, sizeof(sesion.player1Deck), 0);
+
                         sprintf(mensajePierde, "Has perdido la mano, pierdes %d monedas\n", sesion.player1Bet);
-                        send(socketPlayer2, mensajePierde, sizeof(mensajePierde), 0);
+                        tamMensaje=sizeof(mensajePierde);
+                        send(socketPlayer2, &tamMensaje, 4, 0);
+                        send(socketPlayer2, &mensajePierde, tamMensaje, 0);
+                        send(socketPlayer2, &sesion.player2Deck, sizeof(sesion.player2Deck), 0);
 
                 }else if(ganadorMano==player2){
 
                         sesion.player2Stack+= sesion.player1Bet;
                         sesion.player1Stack-= sesion.player1Bet;
                         sprintf(mensajeGana, "Has ganado la mano, ganas %d monedas\n", sesion.player1Bet);
-                        send(socketPlayer2, mensajeGana, sizeof(mensajeGana), 0);
+                        tamMensaje=sizeof(mensajeGana);                        
+                        send(socketPlayer2, &tamMensaje, 4, 0);
+                        send(socketPlayer2, &mensajeGana, tamMensaje, 0);
+                        send(socketPlayer2, &sesion.player2Deck, sizeof(sesion.player2Deck), 0);
+
                         sprintf(mensajePierde, "Has perdido la mano, pierdes %d monedas\n", sesion.player2Bet);
-                        send(socketPlayer1, mensajePierde, sizeof(mensajePierde), 0);
+                        tamMensaje=sizeof(mensajePierde);
+                        send(socketPlayer1, &tamMensaje, 4, 0);
+                        send(socketPlayer1, &mensajePierde, tamMensaje, 0);
+                        send(socketPlayer1, &sesion.player1Deck, sizeof(sesion.player1Deck), 0);
+
 
                 }else{  //empate
 
                         sprintf(mensajeEmpata, "Empate, no pierdes monedas\n");
-                        send(socketPlayer2, mensajeEmpata, sizeof(mensajeEmpata), 0);
-                        send(socketPlayer1, mensajeEmpata, sizeof(mensajeEmpata), 0);
+                        tamMensaje=sizeof(mensajeEmpata);
+
+                        send(socketPlayer2, &tamMensaje, 4, 0);
+                        send(socketPlayer2, &mensajeEmpata, tamMensaje, 0);
+                        send(socketPlayer2, &sesion.player2Deck, sizeof(sesion.player2Deck), 0);
+
+                        send(socketPlayer1, &tamMensaje, 4, 0);
+                        send(socketPlayer1, &mensajeEmpata, tamMensaje, 0);
+                        send(socketPlayer1, &sesion.player1Deck, sizeof(sesion.player1Deck), 0);
 
                 }
 
@@ -345,6 +374,9 @@ int main(int argc, char *argv[]){
                         sprintf(mensajePierde, "Has perdido la partida\n");
                 }
 
+                clearDeck(&sesion.player1Deck);
+                clearDeck(&sesion.player2Deck);
+               
                 starterPlayer= getNextPlayer(starterPlayer);
         }
         /*

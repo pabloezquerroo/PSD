@@ -141,7 +141,6 @@ void tocaJugar(int socketfd){
         if(opcion == PLAYER_STAND){   // Se planta
                 send(socketfd, &localTurnPlayStand, sizeof(localTurnPlayStand), 0);
         }else{  // Pide Carta
-                printf("entra\n");
                 send(socketfd, &localTurnPlayHit, sizeof(localTurnPlayHit), 0);
         }
 }
@@ -162,6 +161,7 @@ int main(int argc, char *argv[]){
         unsigned int apuesta;                                   /** Apuesta realizada*/
         unsigned int turno;                                     /** Codigo par saber si me toca jugar*/
         unsigned int opcion;                                    /** elecion de plantarse del cliente*/
+        int tamMensaje;
         tString mensaje;                                        /** mensaje desde servidor*/
         tDeck deck;                                             /** deck jugador*/
  
@@ -225,14 +225,16 @@ int main(int argc, char *argv[]){
 
                 while(!endOfGame){
                         recv(socketfd, &turno, sizeof(turno), 0);
-                        printf("turno %d\n", turno);
-                        recv(socketfd, &mensaje, sizeof(mensaje), 0);
+                        recv(socketfd, &tamMensaje, 4, 0);
+                        recv(socketfd, &mensaje, tamMensaje, 0);
                         recv(socketfd, &deck, sizeof(deck), 0);    
+                        printf("%s\n",mensaje);
                         printDeck(&deck);
                         if(turno==TURN_PLAY){             // juegas
-                                printf("\n%s\n",mensaje);
                                 tocaJugar(socketfd);
-                        }            
+                        }else if(turno==TURN_GAME_WIN || turno==TURN_GAME_LOSE){
+                                endOfGame=TRUE;
+                        }           
                 }
 
 
