@@ -145,6 +145,13 @@ void tocaJugar(int socketfd){
         }
 }
 
+void tocaApostar(int socketfd){
+        unsigned int apuesta;                                   /** Apuesta realizada*/
+        unsigned int codigo=TURN_BET;
+        apuesta=readBet();
+        send(socketfd, &apuesta, sizeof(apuesta), 0);
+}
+
 
 
 int main(int argc, char *argv[]){
@@ -211,17 +218,17 @@ int main(int argc, char *argv[]){
 		if (nameLength < 0)
 			showError("ERROR while writing to the socket");
 
+/*
                 //Recibo TURN_BET y stack
                 recv(socketfd, &code, 4, 0);
                 recv(socketfd, &stack, 4, 0);
-
                 //Apuesto
                 while(code==TURN_BET){
                         apuesta=readBet();
                         send(socketfd, &apuesta, sizeof(apuesta), 0);  
                         recv(socketfd, &code, 4, 0);
-                        showCode(code);
                 }
+*/
 
                 while(!endOfGame){
                         recv(socketfd, &turno, sizeof(turno), 0);
@@ -229,9 +236,11 @@ int main(int argc, char *argv[]){
                         recv(socketfd, &mensaje, tamMensaje, 0);
                         recv(socketfd, &deck, sizeof(deck), 0);    
                         printf("%s\n",mensaje);
-                        printDeck(&deck);
-                        if(turno==TURN_PLAY){             // juegas
+                        if(turno==TURN_BET){
+                                tocaApostar(socketfd);
+                        }else if(turno==TURN_PLAY){             // juegas
                                 tocaJugar(socketfd);
+                                printDeck(&deck);
                         }else if(turno==TURN_GAME_WIN || turno==TURN_GAME_LOSE){
                                 endOfGame=TRUE;
                         }           
