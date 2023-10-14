@@ -147,7 +147,6 @@ void tocaJugar(int socketfd){
 
 void tocaApostar(int socketfd){
         unsigned int apuesta;                                   /** Apuesta realizada*/
-        unsigned int codigo=TURN_BET;
         apuesta=readBet();
         send(socketfd, &apuesta, sizeof(apuesta), 0);
 }
@@ -162,12 +161,8 @@ int main(int argc, char *argv[]){
 	char* serverIP;						/** Server IP */
 	unsigned int endOfGame;				/** Flag to control the end of the game */
 	tString playerName;					/** Name of the player */
-	unsigned int code;					/** Code */
         int nameLength;
-        unsigned int stack;                                     /** Monedas jugador*/
-        unsigned int apuesta;                                   /** Apuesta realizada*/
         unsigned int turno;                                     /** Codigo par saber si me toca jugar*/
-        unsigned int opcion;                                    /** elecion de plantarse del cliente*/
         int tamMensaje;
         tString mensaje;                                        /** mensaje desde servidor*/
         tDeck deck;                                             /** deck jugador*/
@@ -205,6 +200,7 @@ int main(int argc, char *argv[]){
 			showError("ERROR while establishing connection");
 
                 // Init and read the message
+                system("clear");
 		printf("Enter your name: ");
 		memset(playerName, 0, STRING_LENGTH);
 		fgets(playerName, STRING_LENGTH-1, stdin);
@@ -218,17 +214,6 @@ int main(int argc, char *argv[]){
 		if (nameLength < 0)
 			showError("ERROR while writing to the socket");
 
-/*
-                //Recibo TURN_BET y stack
-                recv(socketfd, &code, 4, 0);
-                recv(socketfd, &stack, 4, 0);
-                //Apuesto
-                while(code==TURN_BET){
-                        apuesta=readBet();
-                        send(socketfd, &apuesta, sizeof(apuesta), 0);  
-                        recv(socketfd, &code, 4, 0);
-                }
-*/
 
                 while(!endOfGame){
                         recv(socketfd, &turno, sizeof(turno), 0);
@@ -238,37 +223,17 @@ int main(int argc, char *argv[]){
                         printf("%s\n",mensaje);
                         if(turno==TURN_BET){
                                 tocaApostar(socketfd);
+                                system("clear");
                         }else if(turno==TURN_PLAY){             // juegas
-                                tocaJugar(socketfd);
                                 printDeck(&deck);
+                                tocaJugar(socketfd);
                         }else if(turno==TURN_GAME_WIN || turno==TURN_GAME_LOSE){
                                 endOfGame=TRUE;
+                        }else if(turno==TURN_PLAY_WAIT){
+                                printf("Deck rival: ");
+                                printDeck(&deck);
                         }           
                 }
-
-
-/*
-                        opcion = readOption();
-
-                        if(opcion == PLAYER_STAND){   // Se planta
-                                send(socketfd, &localTurnPlayStand, sizeof(localTurnPlayStand), 0);
-                        }else{  // Pide Carta
-                                send(socketfd, &localTurnPlayHit, sizeof(localTurnPlayHit), 0);
-                                recv(socketfd, &turno, sizeof(turno), 0);       // código para saber si me he pasado
-                                recv(socketfd, &puntos, sizeof(puntos), 0);     // nuevos puntos
-                                recv(socketfd, &deck, sizeof(deck), 0);         // nuevo deck
-                                if (turno==TURN_PLAY_OUT){
-                                        printf("Te has pasado\n");
-                                        printf("puntos -> %d\n", puntos);
-                                        printDeck(&deck);
-                                }else{
-                                        printf("Estas dentro\n");
-                                        printf("puntos -> %d\n", puntos);
-                                        printDeck(&deck);
-                                }
-                        }
-
-*/
 
                 close(socketfd);
 		
