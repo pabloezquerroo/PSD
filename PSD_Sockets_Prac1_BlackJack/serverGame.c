@@ -418,9 +418,6 @@ int main(int argc, char *argv[]){
                 clearDeck(&sesion.player2Deck);
                
                 starterPlayer= getNextPlayer(starterPlayer);
-                printf("Starter Player: %d\n", starterPlayer);
-                printf("Jugador: %d\n",player2);
-                printf("Ganador: %d\n", ganador);
         }
 
         return 0;
