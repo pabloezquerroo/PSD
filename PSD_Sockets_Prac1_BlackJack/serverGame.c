@@ -416,7 +416,7 @@ int main(int argc, char *argv[]){
 
                 clearDeck(&sesion.player1Deck);
                 clearDeck(&sesion.player2Deck);
-               
+                printf("prueba");
                 starterPlayer= getNextPlayer(starterPlayer);
         }
 
