@@ -101,6 +101,7 @@ unsigned int getRandomCard (tDeck* deck){
 	return card;
 }
 
+
 void pedirApuesta(unsigned int *playerStack, unsigned int *playerBet, int socketPlayer, tDeck *playerDeck){
         int localTurnBet= TURN_BET;
         int localTurnBetOk= TURN_BET_OK;
@@ -118,7 +119,7 @@ void pedirApuesta(unsigned int *playerStack, unsigned int *playerBet, int socket
         recv(socketPlayer, playerBet, 4, 0);
         apuestaCorrecta=FALSE;
         while(!apuestaCorrecta){
-                if(*playerBet <= *playerStack){ // Apuesta Correcta
+                if(*playerBet <= *playerStack && *playerBet>0 && *playerBet<=MAX_BET){ // Apuesta Correcta
                         apuestaCorrecta=TRUE;
                         send(socketPlayer, &localTurnBetOk, sizeof(localTurnBetOk), 0);
                         sprintf(mensajeApostar, "Apuestas %d fichas\n", *playerBet);
@@ -191,9 +192,7 @@ void juega(int socketPlayerAct, int socketPlayerPas, tDeck *playerDeckAct, tDeck
                         send(socketPlayerAct, playerDeckAct, sizeof(*playerDeckAct), 0);
                         finalizoMano=TRUE;
                 }
-                
-                printDeck(playerDeckAct);
-      
+                      
                 //Pasivo
                 send(socketPlayerPas, &localTurnPlayWait, sizeof(localTurnPlay), 0);
                 sprintf(mensaje, "\nTu rival tiene %d puntos.", puntosJug);
@@ -231,71 +230,22 @@ unsigned int compruebaGanadorMano(tDeck *deckP1, tDeck *deckP2){
         }
 }
 
-int main(int argc, char *argv[]){
-
-	int socketfd;				/** Socket descriptor */
-	struct sockaddr_in serverAddress;	/** Server address structure */
-	unsigned int port;			/** Listening port */
-	struct sockaddr_in player1Address;	/** Client address structure for player 1 */
-	struct sockaddr_in player2Address;	/** Client address structure for player 2 */
-	int socketPlayer1;			/** Socket descriptor for player 1 */
-	int socketPlayer2;			/** Socket descriptor for player 2 */
-	unsigned int clientLength;		/** Length of client structure */
-	tThreadArgs *threadArgs; 		/** Thread parameters */
-	pthread_t threadID;			/** Thread ID */
+void partida(tThreadArgs *threadArgs){
+        unsigned int localTurnPlayRivalDone= TURN_PLAY_RIVAL_DONE;
+        unsigned int localTurnGameWin=TURN_GAME_WIN;
+        unsigned int localTurnGameLose=TURN_GAME_LOSE;
+        
         tSession sesion;
+        int ganador;                            /** Player1->0, Player2->1, sigueJugando->-1*/                             
         int bytesRead;
         int tamMensaje;
-        int ganador;                            /** Player1->0, Player2->1, sigueJugando->-1*/                             
         int ganadorMano;
         tString mensajeGana, mensajePierde, mensajeEmpata;
+        //ARGS
+        int socketPlayer1= threadArgs->socketPlayer1;	/** Socket descriptor for player 1 */
+	int socketPlayer2= threadArgs->socketPlayer2;	/** Socket descriptor for player 2 */
 
         ganador =-1;
-
-        // Seed
-        srand(time(0));
-
-        // Check arguments
-        if (argc != 2) {
-                fprintf(stderr,"ERROR wrong number of arguments\n");
-                fprintf(stderr,"Usage:\n$>%s port\n", argv[0]);
-                exit(1);
-        }
-
-        socketfd= socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-        // Check
-        if (socketfd < 0)
-                showError("ERROR al abrir el puerto");
-
-        // Inicializar struct servidor
-        memset(&serverAddress, 0, sizeof(serverAddress));
-
-        // Obtener listening port
-        port = atoi(argv[1]);
-
-        serverAddress.sin_family = AF_INET;
-        serverAddress.sin_addr.s_addr = htonl(INADDR_ANY);
-        serverAddress.sin_port = htons(port);
-    
-	if (bind(socketfd, (struct sockaddr *) &serverAddress, sizeof(serverAddress)) < 0)
-                perror("Error al asociar un puerto\n");
-
-       	// Listen
-        listen(socketfd, 10);
-        
-        // Obtener longitud del ClientAddr
-	clientLength = sizeof(player1Address);
-
-	// Accept!
-	socketPlayer1 = accept(socketfd, (struct sockaddr *) &player1Address, &clientLength);
-        if (socketPlayer1 < 0)
-		showError("ERROR en el Accept 1");	 
-	
-        socketPlayer2 = accept(socketfd, (struct sockaddr *) &player2Address, &clientLength);
-
-        if (socketPlayer2 < 0)
-		showError("ERROR en el Accept 2");
-                
         initSession(&sesion);
         tPlayer starterPlayer= player1;
 
@@ -306,11 +256,8 @@ int main(int argc, char *argv[]){
         recv(socketPlayer2, &bytesRead, sizeof(int), 0);
         recv(socketPlayer2, sesion.player2Name, bytesRead, 0);
 
+        printf("llega\n");
 
-
-        unsigned int localTurnPlayRivalDone= TURN_PLAY_RIVAL_DONE;
-        unsigned int localTurnGameWin=TURN_GAME_WIN;
-        unsigned int localTurnGameLose=TURN_GAME_LOSE;
         while(ganador==-1){
                 system("clear");
                 //Apuestas
@@ -420,5 +367,72 @@ int main(int argc, char *argv[]){
                 starterPlayer= getNextPlayer(starterPlayer);
         }
 
+}
+
+int main(int argc, char *argv[]){
+
+	int socketfd;				/** Socket descriptor */
+	struct sockaddr_in serverAddress;	/** Server address structure */
+	unsigned int port;			/** Listening port */
+	struct sockaddr_in player1Address;	/** Client address structure for player 1 */
+	struct sockaddr_in player2Address;	/** Client address structure for player 2 */
+	int socketPlayer1;			/** Socket descriptor for player 1 */
+	int socketPlayer2;			/** Socket descriptor for player 2 */
+	unsigned int clientLength;		/** Length of client structure */
+	tThreadArgs *threadArgs; 		/** Thread parameters */
+	pthread_t threadID;			/** Thread ID */
+
+        // Seed
+        srand(time(0));
+
+        // Check arguments
+        if (argc != 2) {
+                fprintf(stderr,"ERROR wrong number of arguments\n");
+                fprintf(stderr,"Usage:\n$>%s port\n", argv[0]);
+                exit(1);
+        }
+
+        socketfd= socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+        // Check
+        if (socketfd < 0)
+                showError("ERROR al abrir el puerto");
+
+        // Inicializar struct servidor
+        memset(&serverAddress, 0, sizeof(serverAddress));
+
+        // Obtener listening port
+        port = atoi(argv[1]);
+
+        serverAddress.sin_family = AF_INET;
+        serverAddress.sin_addr.s_addr = htonl(INADDR_ANY);
+        serverAddress.sin_port = htons(port);
+    
+	if (bind(socketfd, (struct sockaddr *) &serverAddress, sizeof(serverAddress)) < 0)
+                perror("Error al asociar un puerto\n");
+
+       	// Listen 
+        listen(socketfd, 10);
+
+
+        while(1){
+                // Accept!
+                clientLength = sizeof(player1Address);
+                socketPlayer1 = accept(socketfd, (struct sockaddr *) &player1Address, &clientLength);
+                if (socketPlayer1 < 0)
+                        showError("ERROR en el Accept 1");	 
+
+                socketPlayer2 = accept(socketfd, (struct sockaddr *) &player2Address, &clientLength);
+                if (socketPlayer2 < 0)
+                        showError("ERROR en el Accept 2");
+
+                threadArgs= malloc(sizeof(tThreadArgs));
+                threadArgs->socketPlayer1= socketPlayer1;
+                threadArgs->socketPlayer2= socketPlayer2;
+
+                if(pthread_create(&threadID, NULL, partida, threadArgs)!=0)
+                        showError("ERROR en el la creacion del hilo");
+        }
+        close(socketfd);
+        
         return 0;
 }
