@@ -290,7 +290,7 @@ void partida(tThreadArgs *threadArgs){
                         send(socketPlayer1, &mensajeGana, tamMensaje, 0);
                         send(socketPlayer1, &sesion.player1Deck, sizeof(sesion.player1Deck), 0);
 
-                        sprintf(mensajePierde, "\nHas perdido la mano, pierdes %d monedas", sesion.player1Bet);
+                        sprintf(mensajePierde, "\nHas perdido la mano, pierdes %d monedas", sesion.player2Bet);
                         tamMensaje=sizeof(mensajePierde);
                         send(socketPlayer2, &tamMensaje, 4, 0);
                         send(socketPlayer2, &mensajePierde, tamMensaje, 0);
@@ -306,7 +306,7 @@ void partida(tThreadArgs *threadArgs){
                         send(socketPlayer2, &mensajeGana, tamMensaje, 0);
                         send(socketPlayer2, &sesion.player2Deck, sizeof(sesion.player2Deck), 0);
 
-                        sprintf(mensajePierde, "\nHas perdido la mano, pierdes %d monedas", sesion.player2Bet);
+                        sprintf(mensajePierde, "\nHas perdido la mano, pierdes %d monedas", sesion.player1Bet);
                         tamMensaje=sizeof(mensajePierde);
                         send(socketPlayer1, &tamMensaje, 4, 0);
                         send(socketPlayer1, &mensajePierde, tamMensaje, 0);
@@ -433,6 +433,6 @@ int main(int argc, char *argv[]){
                         showError("ERROR en el la creacion del hilo");
         }
         close(socketfd);
-        
+
         return 0;
 }
