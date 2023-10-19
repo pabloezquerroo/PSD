@@ -225,13 +225,13 @@ int main(int argc, char *argv[]){
                                 tocaApostar(socketfd);
                                 system("clear");
                         }else if(turno==TURN_PLAY){             // juegas
-                                printDeck(&deck);
+                                printFancyDeck(&deck);
                                 tocaJugar(socketfd);
                         }else if(turno==TURN_GAME_WIN || turno==TURN_GAME_LOSE){
                                 endOfGame=TRUE;
                         }else if(turno==TURN_PLAY_WAIT){
                                 printf("Deck rival: ");
-                                printDeck(&deck);
+                                printFancyDeck(&deck);
                         }           
                 }
 

@@ -101,6 +101,12 @@ unsigned int getRandomCard (tDeck* deck){
 	return card;
 }
 
+void recibeCartas(tDeck *playerDeck, tDeck *gameDeck, int numCartas){
+        for(int i=0; i<numCartas; i++){
+                playerDeck->cards[playerDeck->numCards]=getRandomCard(gameDeck);
+                (playerDeck->numCards)++;
+        }
+}
 
 void pedirApuesta(unsigned int *playerStack, unsigned int *playerBet, int socketPlayer, tDeck *playerDeck){
         int localTurnBet= TURN_BET;
@@ -165,8 +171,7 @@ void juega(int socketPlayerAct, int socketPlayerPas, tDeck *playerDeckAct, tDeck
                 //      Recibimos si pide carta el jugador
                 recv(socketPlayerAct, &pideCarta, sizeof(pideCarta), 0);
                 if(pideCarta==TURN_PLAY_HIT){
-                        playerDeckAct->cards[playerDeckAct->numCards]=getRandomCard(gameDeck);
-                        (playerDeckAct->numCards)++;
+                        recibeCartas(playerDeckAct, gameDeck, 1);
                         puntosJug= calculatePoints(playerDeckAct);
                         
                         if (puntosJug>GOAL_GAME){ // Se ha pasado
@@ -264,6 +269,10 @@ void partida(tThreadArgs *threadArgs){
                 pedirApuesta(&sesion.player1Stack, &sesion.player1Bet, socketPlayer1, &sesion.player1Deck);
                 pedirApuesta(&sesion.player2Stack, &sesion.player2Bet, socketPlayer2, &sesion.player2Deck);
                 printSession(&sesion);
+                
+                //Cartas iniciales
+                recibeCartas(&sesion.player1Deck, &sesion.gameDeck, 2);
+                recibeCartas(&sesion.player2Deck, &sesion.gameDeck, 2);
                 
                 //Inicio de partida
                 if(starterPlayer==player1){
