@@ -58,7 +58,7 @@ int main(int argc, char **argv){
 	blackJackns__tBlock gameStatus;		/** Game status */
 	unsigned int playerMove;			/** Player's move */
 	int resCode, gameId;				/** Result and gameId */
-	
+	unsigned int endOfGame;
 		// Init gSOAP environment
 		soap_init(&soap);
 
@@ -74,9 +74,34 @@ int main(int argc, char **argv){
 			printf("Usage: %s http://server:port\n",argv[0]);
 			exit(0);
 		}
+                endOfGame=FALSE;
 
-	
-	
+                // Init and read the message
+
+                resCode=-1;
+                while(resCode <= 0){ // Mientras no registrado
+                        printf("Enter your name: ");
+                        memset(gameStatus.msgStruct.msg, 0, STRING_LENGTH);
+                        fgets(playerName.msg, STRING_LENGTH-1, stdin);
+                        playerName.__size= strlen(playerName.msg)-1;
+                        blackJackns__register(&soap, playerName, &resCode);
+                        system("clear");
+                        switch (resCode)
+                        {
+                        case ERROR_NAME_REPEATED:
+                                printf("Error: Nombre ya existente\n");
+                                break;
+                        case ERROR_SERVER_FULL:
+                                printf("Error: Servidor Completo\n");
+                        break;
+                        default:
+                                break;
+                        }
+                }
+                while(!endOfGame){
+                        //blackJackns__getStatus()
+                }
+
 	
 	
 	
