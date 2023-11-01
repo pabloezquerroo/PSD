@@ -99,7 +99,8 @@ int main(int argc, char **argv){
                         }
                 }
                 while(!endOfGame){
-                        //blackJackns__getStatus()
+                        blackJackns__getStatus(&soap, playerName, &resCode);
+                        printFancyDeck(&gameStatus.deck);
                 }
 
 	

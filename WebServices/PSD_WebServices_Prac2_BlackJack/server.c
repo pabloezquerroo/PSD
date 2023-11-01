@@ -135,6 +135,26 @@ int blackJackns__register (struct soap *soap, blackJackns__tMessage playerName, 
   	return SOAP_OK;
 }
 
+int blackJackns__getStatus(struct soap *soap, blackJackns__tMessage playerName, int* result){
+        return 1;
+}
+
+
+void *processRequest(void *soap){
+
+	pthread_detach(pthread_self());
+
+	printf ("Processing a new request...");
+
+	soap_serve((struct soap*)soap);
+	soap_destroy((struct soap*)soap);
+	soap_end((struct soap*)soap);
+	soap_done((struct soap*)soap);
+	free(soap);
+
+	return NULL;
+}
+
 int main(int argc, char **argv){ 
 
 	struct soap soap;
@@ -149,6 +169,62 @@ int main(int argc, char **argv){
 			exit(0);
 		}
 
-	
+	// Init soap environment
+        soap_init(&soap);
+
+        // Configure timeouts
+        soap.send_timeout = 60; // 60 seconds
+        soap.recv_timeout = 60; // 60 seconds
+        soap.accept_timeout = 3600; // server stops after 1 hour of inactivity
+        soap.max_keep_alive = 100; // max keep-alive sequence
+
+        initServerStructures(&soap);
+
+        // Get listening port
+        port = atoi(argv[1]);
+
+        // Bind
+        m = soap_bind(&soap, NULL, port, 100);
+
+        if (!soap_valid_socket(m)){
+                exit(1);
+        }
+
+        printf("Server is ON!\n");
+
+
+		while (TRUE){
+
+			// Accept a new connection
+			s = soap_accept(&soap);
+
+			// Socket is not valid :(
+			if (!soap_valid_socket(s)){
+
+				if (soap.errnum){
+					soap_print_fault(&soap, stderr);
+					exit(1);
+				}
+
+				fprintf(stderr, "Time out!\n");
+				break;
+			}
+
+			// Copy the SOAP environment
+			tsoap = soap_copy(&soap);
+
+			if (!tsoap){
+				printf ("SOAP copy error!\n");
+				break;
+			}
+
+			// Create a new thread to process the request
+			pthread_create(&tid, NULL, (void*(*)(void*))processRequest, (void*)tsoap);
+		}
+
+	// Detach SOAP environment
+	soap_done(&soap);
+
+
 	return 0;
 }
