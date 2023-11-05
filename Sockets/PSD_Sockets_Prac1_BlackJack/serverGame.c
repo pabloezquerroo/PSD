@@ -261,8 +261,6 @@ void partida(tThreadArgs *threadArgs){
         recv(socketPlayer2, &bytesRead, sizeof(int), 0);
         recv(socketPlayer2, sesion.player2Name, bytesRead, 0);
 
-        printf("llega\n");
-
         while(ganador==-1){
                 system("clear");
                 //Apuestas
