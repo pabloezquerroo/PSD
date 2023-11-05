@@ -17,7 +17,7 @@ A commercial use license is available from Genivia Inc., contact@genivia.com
 #endif
 #include "soapH.h"
 
-SOAP_SOURCE_STAMP("@(#) soapClient.c ver 2.8.131 2023-11-03 11:45:18 GMT")
+SOAP_SOURCE_STAMP("@(#) soapClient.c ver 2.8.131 2023-11-05 16:03:00 GMT")
 
 
 SOAP_FMAC5 int SOAP_FMAC6 soap_call_blackJackns__register(struct soap *soap, const char *soap_endpoint, const char *soap_action, struct tMessage playerName, int *result)
@@ -85,17 +85,18 @@ SOAP_FMAC5 int SOAP_FMAC6 soap_recv_blackJackns__register(struct soap *soap, int
 	return soap_closesock(soap);
 }
 
-SOAP_FMAC5 int SOAP_FMAC6 soap_call_blackJackns__getStatus(struct soap *soap, const char *soap_endpoint, const char *soap_action, struct tMessage playerName, int *gameId)
-{	if (soap_send_blackJackns__getStatus(soap, soap_endpoint, soap_action, playerName) || soap_recv_blackJackns__getStatus(soap, gameId))
+SOAP_FMAC5 int SOAP_FMAC6 soap_call_blackJackns__getStatus(struct soap *soap, const char *soap_endpoint, const char *soap_action, struct tMessage playerName, struct tBlock *status, int *result)
+{	if (soap_send_blackJackns__getStatus(soap, soap_endpoint, soap_action, playerName, status) || soap_recv_blackJackns__getStatus(soap, result))
 		return soap->error;
 	return SOAP_OK;
 }
 
-SOAP_FMAC5 int SOAP_FMAC6 soap_send_blackJackns__getStatus(struct soap *soap, const char *soap_endpoint, const char *soap_action, struct tMessage playerName)
+SOAP_FMAC5 int SOAP_FMAC6 soap_send_blackJackns__getStatus(struct soap *soap, const char *soap_endpoint, const char *soap_action, struct tMessage playerName, struct tBlock *status)
 {	struct blackJackns__getStatus soap_tmp_blackJackns__getStatus;
 	if (soap_endpoint == NULL)
 		soap_endpoint = "http//localhost:10000";
 	soap_tmp_blackJackns__getStatus.playerName = playerName;
+	soap_tmp_blackJackns__getStatus.status = status;
 	soap_begin(soap);
 	soap->encodingStyle = ""; /* use SOAP encoding style */
 	soap_serializeheader(soap);
@@ -125,12 +126,12 @@ SOAP_FMAC5 int SOAP_FMAC6 soap_send_blackJackns__getStatus(struct soap *soap, co
 	return SOAP_OK;
 }
 
-SOAP_FMAC5 int SOAP_FMAC6 soap_recv_blackJackns__getStatus(struct soap *soap, int *gameId)
+SOAP_FMAC5 int SOAP_FMAC6 soap_recv_blackJackns__getStatus(struct soap *soap, int *result)
 {
 	struct blackJackns__getStatusResponse *soap_tmp_blackJackns__getStatusResponse;
-	if (!gameId)
+	if (!result)
 		return soap_closesock(soap);
-	soap_default_int(soap, gameId);
+	soap_default_int(soap, result);
 	if (soap_begin_recv(soap)
 	 || soap_envelope_begin_in(soap)
 	 || soap_recv_header(soap)
@@ -145,8 +146,8 @@ SOAP_FMAC5 int SOAP_FMAC6 soap_recv_blackJackns__getStatus(struct soap *soap, in
 	 || soap_envelope_end_in(soap)
 	 || soap_end_recv(soap))
 		return soap_closesock(soap);
-	if (gameId && soap_tmp_blackJackns__getStatusResponse->gameId)
-		*gameId = *soap_tmp_blackJackns__getStatusResponse->gameId;
+	if (result && soap_tmp_blackJackns__getStatusResponse->result)
+		*result = *soap_tmp_blackJackns__getStatusResponse->result;
 	return soap_closesock(soap);
 }
 

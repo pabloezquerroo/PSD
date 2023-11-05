@@ -74,49 +74,41 @@ int main(int argc, char **argv){
 			printf("Usage: %s http://server:port\n",argv[0]);
 			exit(0);
 		}
-                endOfGame=FALSE;
 
-                // Init and read the message
+		endOfGame=FALSE;
 
-                resCode=-1;
-                while(resCode <= 0){ // Mientras no registrado
-                        printf("Enter your name: ");
-                        memset(gameStatus.msgStruct.msg, 0, STRING_LENGTH);
-                        fgets(playerName.msg, STRING_LENGTH-1, stdin);
-                        playerName.__size= strlen(playerName.msg)-1;
-                        blackJackns__register(&soap, playerName, &resCode);
-                        system("clear");
-                        switch (resCode)
-                        {
-                        case ERROR_NAME_REPEATED:
-                                printf("Error: Nombre ya existente\n");
-                        	break;
-                        case ERROR_SERVER_FULL:
-                                printf("Error: Servidor completo\n");
-                        	break;
-                        default:
-								printf("¡Registro Correcto! Partida %d\n", resCode);
-								gameId=resCode;
-                            break;
-                        }
-                }
-                while(!endOfGame){
-                        blackJackns__getStatus(&soap,playerName, &gameStatus, &resCode);
-                        printFancyDeck(&gameStatus.deck);
-                }
+		// Init and read the message
 
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+		resCode=-1;
+		while(resCode <= 0){ // Mientras no registrado
+			printf("Enter your name: ");
+			memset(gameStatus.msgStruct.msg, 0, STRING_LENGTH);
+			fgets(playerName.msg, STRING_LENGTH-1, stdin);
+			playerName.__size= strlen(playerName.msg)-1;
+			blackJackns__register(&soap, playerName, &resCode);
+			system("clear");
+			switch (resCode)
+			{
+			case ERROR_NAME_REPEATED:
+					printf("Error: Nombre ya existente\n");
+				break;
+			case ERROR_SERVER_FULL:
+					printf("Error: Servidor completo\n");
+				break;
+			default:
+					printf("¡Registro Correcto! Partida %d\n", resCode);
+					gameId=resCode;
+				break;
+			}
+		}
+		while(!endOfGame){
+			blackJackns__getStatus(&soap, playerName, &gameStatus, &resCode);
+			printf("Game status: %s\n", gameStatus.msgStruct.msg);
+			if(gameStatus.code==TURN_PLAY){
+				playerMove=readOption();
+				blackJackns__playermove(&soap, playerName, gameId, playerMove, &resCode);
+			}
+		}
 
   	return 0;
 }

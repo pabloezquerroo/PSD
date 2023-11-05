@@ -114,28 +114,30 @@ struct blackJackns__register {
 
 /* blackJack.h:76 */
 #ifndef SOAP_TYPE_blackJackns__getStatusResponse
-#define SOAP_TYPE_blackJackns__getStatusResponse (21)
+#define SOAP_TYPE_blackJackns__getStatusResponse (22)
 /* complex XML schema type 'blackJackns:getStatusResponse': */
 struct blackJackns__getStatusResponse {
-        /** Optional element 'gameId' of XML schema type 'xsd:int' */
-        int *gameId;
+        /** Optional element 'result' of XML schema type 'xsd:int' */
+        int *result;
 };
 #endif
 
 /* blackJack.h:76 */
 #ifndef SOAP_TYPE_blackJackns__getStatus
-#define SOAP_TYPE_blackJackns__getStatus (22)
+#define SOAP_TYPE_blackJackns__getStatus (23)
 /* complex XML schema type 'blackJackns:getStatus': */
 struct blackJackns__getStatus {
         /** Required element 'playerName' of XML schema type 'blackJackns:tMessage' */
         struct tMessage playerName;
+        /** Optional element 'status' of XML schema type 'blackJackns:tBlock' */
+        struct tBlock *status;
 };
 #endif
 
-/* blackJack.h:76 */
+/* blackJack.h:77 */
 #ifndef WITH_NOGLOBAL
 #ifndef SOAP_TYPE_SOAP_ENV__Header
-#define SOAP_TYPE_SOAP_ENV__Header (23)
+#define SOAP_TYPE_SOAP_ENV__Header (24)
 /* SOAP_ENV__Header: */
 struct SOAP_ENV__Header {
 #ifdef WITH_NOEMPTYSTRUCT
@@ -145,10 +147,10 @@ struct SOAP_ENV__Header {
 #endif
 #endif
 
-/* blackJack.h:76 */
+/* blackJack.h:77 */
 #ifndef WITH_NOGLOBAL
 #ifndef SOAP_TYPE_SOAP_ENV__Code
-#define SOAP_TYPE_SOAP_ENV__Code (24)
+#define SOAP_TYPE_SOAP_ENV__Code (25)
 /* Type SOAP_ENV__Code is a recursive data type, (in)directly referencing itself through its (base or derived class) members */
 /* SOAP_ENV__Code: */
 struct SOAP_ENV__Code {
@@ -160,10 +162,10 @@ struct SOAP_ENV__Code {
 #endif
 #endif
 
-/* blackJack.h:76 */
+/* blackJack.h:77 */
 #ifndef WITH_NOGLOBAL
 #ifndef SOAP_TYPE_SOAP_ENV__Detail
-#define SOAP_TYPE_SOAP_ENV__Detail (26)
+#define SOAP_TYPE_SOAP_ENV__Detail (27)
 /* SOAP_ENV__Detail: */
 struct SOAP_ENV__Detail {
         char *__any;
@@ -175,10 +177,10 @@ struct SOAP_ENV__Detail {
 #endif
 #endif
 
-/* blackJack.h:76 */
+/* blackJack.h:77 */
 #ifndef WITH_NOGLOBAL
 #ifndef SOAP_TYPE_SOAP_ENV__Reason
-#define SOAP_TYPE_SOAP_ENV__Reason (29)
+#define SOAP_TYPE_SOAP_ENV__Reason (30)
 /* SOAP_ENV__Reason: */
 struct SOAP_ENV__Reason {
         /** Optional element 'SOAP-ENV:Text' of XML schema type 'xsd:string' */
@@ -187,10 +189,10 @@ struct SOAP_ENV__Reason {
 #endif
 #endif
 
-/* blackJack.h:76 */
+/* blackJack.h:77 */
 #ifndef WITH_NOGLOBAL
 #ifndef SOAP_TYPE_SOAP_ENV__Fault
-#define SOAP_TYPE_SOAP_ENV__Fault (30)
+#define SOAP_TYPE_SOAP_ENV__Fault (31)
 /* SOAP_ENV__Fault: */
 struct SOAP_ENV__Fault {
         /** Optional element 'faultcode' of XML schema type 'xsd:QName' */
@@ -282,37 +284,37 @@ typedef struct tBlock blackJackns__tBlock;
 
 /* struct SOAP_ENV__Fault has binding name 'SOAP_ENV__Fault' for type '' */
 #ifndef SOAP_TYPE_SOAP_ENV__Fault
-#define SOAP_TYPE_SOAP_ENV__Fault (30)
+#define SOAP_TYPE_SOAP_ENV__Fault (31)
 #endif
 
 /* struct SOAP_ENV__Reason has binding name 'SOAP_ENV__Reason' for type '' */
 #ifndef SOAP_TYPE_SOAP_ENV__Reason
-#define SOAP_TYPE_SOAP_ENV__Reason (29)
+#define SOAP_TYPE_SOAP_ENV__Reason (30)
 #endif
 
 /* struct SOAP_ENV__Detail has binding name 'SOAP_ENV__Detail' for type '' */
 #ifndef SOAP_TYPE_SOAP_ENV__Detail
-#define SOAP_TYPE_SOAP_ENV__Detail (26)
+#define SOAP_TYPE_SOAP_ENV__Detail (27)
 #endif
 
 /* struct SOAP_ENV__Code has binding name 'SOAP_ENV__Code' for type '' */
 #ifndef SOAP_TYPE_SOAP_ENV__Code
-#define SOAP_TYPE_SOAP_ENV__Code (24)
+#define SOAP_TYPE_SOAP_ENV__Code (25)
 #endif
 
 /* struct SOAP_ENV__Header has binding name 'SOAP_ENV__Header' for type '' */
 #ifndef SOAP_TYPE_SOAP_ENV__Header
-#define SOAP_TYPE_SOAP_ENV__Header (23)
+#define SOAP_TYPE_SOAP_ENV__Header (24)
 #endif
 
 /* struct blackJackns__getStatus has binding name 'blackJackns__getStatus' for type 'blackJackns:getStatus' */
 #ifndef SOAP_TYPE_blackJackns__getStatus
-#define SOAP_TYPE_blackJackns__getStatus (22)
+#define SOAP_TYPE_blackJackns__getStatus (23)
 #endif
 
 /* struct blackJackns__getStatusResponse has binding name 'blackJackns__getStatusResponse' for type 'blackJackns:getStatusResponse' */
 #ifndef SOAP_TYPE_blackJackns__getStatusResponse
-#define SOAP_TYPE_blackJackns__getStatusResponse (21)
+#define SOAP_TYPE_blackJackns__getStatusResponse (22)
 #endif
 
 /* struct blackJackns__register has binding name 'blackJackns__register' for type 'blackJackns:register' */
@@ -357,17 +359,22 @@ typedef struct tBlock blackJackns__tBlock;
 
 /* struct SOAP_ENV__Reason * has binding name 'PointerToSOAP_ENV__Reason' for type '' */
 #ifndef SOAP_TYPE_PointerToSOAP_ENV__Reason
-#define SOAP_TYPE_PointerToSOAP_ENV__Reason (32)
+#define SOAP_TYPE_PointerToSOAP_ENV__Reason (33)
 #endif
 
 /* struct SOAP_ENV__Detail * has binding name 'PointerToSOAP_ENV__Detail' for type '' */
 #ifndef SOAP_TYPE_PointerToSOAP_ENV__Detail
-#define SOAP_TYPE_PointerToSOAP_ENV__Detail (31)
+#define SOAP_TYPE_PointerToSOAP_ENV__Detail (32)
 #endif
 
 /* struct SOAP_ENV__Code * has binding name 'PointerToSOAP_ENV__Code' for type '' */
 #ifndef SOAP_TYPE_PointerToSOAP_ENV__Code
-#define SOAP_TYPE_PointerToSOAP_ENV__Code (25)
+#define SOAP_TYPE_PointerToSOAP_ENV__Code (26)
+#endif
+
+/* struct tBlock * has binding name 'PointerToblackJackns__tBlock' for type 'blackJackns:tBlock' */
+#ifndef SOAP_TYPE_PointerToblackJackns__tBlock
+#define SOAP_TYPE_PointerToblackJackns__tBlock (20)
 #endif
 
 /* int * has binding name 'PointerToint' for type 'xsd:int' */
@@ -422,11 +429,11 @@ typedef struct tBlock blackJackns__tBlock;
     SOAP_FMAC5 int SOAP_FMAC6 soap_recv_blackJackns__register(struct soap *soap, int *result);
     
     /** Web service synchronous operation 'soap_call_blackJackns__getStatus' to the specified endpoint and SOAP Action header, returns SOAP_OK or error code */
-    SOAP_FMAC5 int SOAP_FMAC6 soap_call_blackJackns__getStatus(struct soap *soap, const char *soap_endpoint, const char *soap_action, struct tMessage playerName, int *gameId);
+    SOAP_FMAC5 int SOAP_FMAC6 soap_call_blackJackns__getStatus(struct soap *soap, const char *soap_endpoint, const char *soap_action, struct tMessage playerName, struct tBlock *status, int *result);
     /** Web service asynchronous operation 'soap_send_blackJackns__getStatus' to send a request message to the specified endpoint and SOAP Action header, returns SOAP_OK or error code */
-    SOAP_FMAC5 int SOAP_FMAC6 soap_send_blackJackns__getStatus(struct soap *soap, const char *soap_endpoint, const char *soap_action, struct tMessage playerName);
+    SOAP_FMAC5 int SOAP_FMAC6 soap_send_blackJackns__getStatus(struct soap *soap, const char *soap_endpoint, const char *soap_action, struct tMessage playerName, struct tBlock *status);
     /** Web service asynchronous operation 'soap_recv_blackJackns__getStatus' to receive a response message from the connected endpoint, returns SOAP_OK or error code */
-    SOAP_FMAC5 int SOAP_FMAC6 soap_recv_blackJackns__getStatus(struct soap *soap, int *gameId);
+    SOAP_FMAC5 int SOAP_FMAC6 soap_recv_blackJackns__getStatus(struct soap *soap, int *result);
 
 /******************************************************************************\
  *                                                                            *
@@ -437,7 +444,7 @@ typedef struct tBlock blackJackns__tBlock;
     /** Web service operation 'blackJackns__register' implementation, should return SOAP_OK or error code */
     SOAP_FMAC5 int SOAP_FMAC6 blackJackns__register(struct soap*, struct tMessage playerName, int *result);
     /** Web service operation 'blackJackns__getStatus' implementation, should return SOAP_OK or error code */
-    SOAP_FMAC5 int SOAP_FMAC6 blackJackns__getStatus(struct soap*, struct tMessage playerName, int *gameId);
+    SOAP_FMAC5 int SOAP_FMAC6 blackJackns__getStatus(struct soap*, struct tMessage playerName, struct tBlock *status, int *result);
 
 /******************************************************************************\
  *                                                                            *

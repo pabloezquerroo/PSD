@@ -17,7 +17,7 @@ A commercial use license is available from Genivia Inc., contact@genivia.com
 #endif
 #include "soapH.h"
 
-SOAP_SOURCE_STAMP("@(#) soapServer.c ver 2.8.131 2023-11-03 11:45:18 GMT")
+SOAP_SOURCE_STAMP("@(#) soapServer.c ver 2.8.131 2023-11-05 16:03:00 GMT")
 SOAP_FMAC5 int SOAP_FMAC6 soap_serve(struct soap *soap)
 {
 #ifndef WITH_FASTCGI
@@ -114,7 +114,7 @@ SOAP_FMAC5 int SOAP_FMAC6 soap_serve_blackJackns__getStatus(struct soap *soap)
 	int soap_tmp_int;
 	soap_default_blackJackns__getStatusResponse(soap, &soap_tmp_blackJackns__getStatusResponse);
 	soap_default_int(soap, &soap_tmp_int);
-	soap_tmp_blackJackns__getStatusResponse.gameId = &soap_tmp_int;
+	soap_tmp_blackJackns__getStatusResponse.result = &soap_tmp_int;
 	soap_default_blackJackns__getStatus(soap, &soap_tmp_blackJackns__getStatus);
 	if (!soap_get_blackJackns__getStatus(soap, &soap_tmp_blackJackns__getStatus, "blackJackns:getStatus", NULL))
 		return soap->error;
@@ -122,7 +122,7 @@ SOAP_FMAC5 int SOAP_FMAC6 soap_serve_blackJackns__getStatus(struct soap *soap)
 	 || soap_envelope_end_in(soap)
 	 || soap_end_recv(soap))
 		return soap->error;
-	soap->error = blackJackns__getStatus(soap, soap_tmp_blackJackns__getStatus.playerName, soap_tmp_blackJackns__getStatusResponse.gameId);
+	soap->error = blackJackns__getStatus(soap, soap_tmp_blackJackns__getStatus.playerName, soap_tmp_blackJackns__getStatus.status, soap_tmp_blackJackns__getStatusResponse.result);
 	if (soap->error)
 		return soap->error;
 	soap->encodingStyle = ""; /* use SOAP encoding style */

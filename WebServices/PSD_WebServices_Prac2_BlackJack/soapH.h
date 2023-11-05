@@ -960,6 +960,15 @@ SOAP_FMAC3 struct SOAP_ENV__Code ** SOAP_FMAC4 soap_get_PointerToSOAP_ENV__Code(
 
 #endif
 
+#ifndef SOAP_TYPE_PointerToblackJackns__tBlock_DEFINED
+#define SOAP_TYPE_PointerToblackJackns__tBlock_DEFINED
+SOAP_FMAC3 void SOAP_FMAC4 soap_serialize_PointerToblackJackns__tBlock(struct soap*, struct tBlock *const*);
+SOAP_FMAC3 int SOAP_FMAC4 soap_out_PointerToblackJackns__tBlock(struct soap*, const char *, int, struct tBlock *const*, const char *);
+SOAP_FMAC3 struct tBlock ** SOAP_FMAC4 soap_in_PointerToblackJackns__tBlock(struct soap*, const char*, struct tBlock **, const char*);
+SOAP_FMAC3 int SOAP_FMAC4 soap_put_PointerToblackJackns__tBlock(struct soap*, struct tBlock *const*, const char*, const char*);
+SOAP_FMAC3 struct tBlock ** SOAP_FMAC4 soap_get_PointerToblackJackns__tBlock(struct soap*, struct tBlock **, const char*, const char*);
+#endif
+
 #ifndef SOAP_TYPE_PointerToint_DEFINED
 #define SOAP_TYPE_PointerToint_DEFINED
 SOAP_FMAC3 void SOAP_FMAC4 soap_serialize_PointerToint(struct soap*, int *const*);

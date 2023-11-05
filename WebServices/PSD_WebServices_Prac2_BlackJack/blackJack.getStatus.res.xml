@@ -7,7 +7,7 @@
     xmlns:blackJackns="urn:blackJackns">
  <SOAP-ENV:Body SOAP-ENV:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
   <blackJackns:getStatusResponse>
-   <gameId>0</gameId>
+   <result>0</result>
   </blackJackns:getStatusResponse>
  </SOAP-ENV:Body>
 </SOAP-ENV:Envelope>

@@ -18,7 +18,7 @@ A commercial use license is available from Genivia Inc., contact@genivia.com
 
 #include "soapH.h"
 
-SOAP_SOURCE_STAMP("@(#) soapC.c ver 2.8.131 2023-11-03 11:45:18 GMT")
+SOAP_SOURCE_STAMP("@(#) soapC.c ver 2.8.131 2023-11-05 16:03:00 GMT")
 
 
 #ifndef WITH_NOGLOBAL
@@ -212,6 +212,8 @@ SOAP_FMAC3 void * SOAP_FMAC4 soap_getelement(struct soap *soap, const char *tag,
 		return soap_in_blackJackns__tMessage(soap, tag, NULL, "blackJackns:tMessage");
 	case SOAP_TYPE_tMessage:
 		return soap_in_tMessage(soap, tag, NULL, "tMessage");
+	case SOAP_TYPE_PointerToblackJackns__tBlock:
+		return soap_in_PointerToblackJackns__tBlock(soap, tag, NULL, "blackJackns:tBlock");
 	case SOAP_TYPE_PointerToint:
 		return soap_in_PointerToint(soap, tag, NULL, "xsd:int");
 	case SOAP_TYPE_PointerTounsignedInt:
@@ -386,6 +388,8 @@ SOAP_FMAC3 int SOAP_FMAC4 soap_putelement(struct soap *soap, const void *ptr, co
 		return soap_out_blackJackns__tMessage(soap, tag, id, (const struct tMessage *)ptr, "blackJackns:tMessage");
 	case SOAP_TYPE_tMessage:
 		return soap_out_tMessage(soap, tag, id, (const struct tMessage *)ptr, "tMessage");
+	case SOAP_TYPE_PointerToblackJackns__tBlock:
+		return soap_out_PointerToblackJackns__tBlock(soap, tag, id, (struct tBlock *const*)ptr, "blackJackns:tBlock");
 	case SOAP_TYPE_PointerToint:
 		return soap_out_PointerToint(soap, tag, id, (int *const*)ptr, "xsd:int");
 	case SOAP_TYPE_PointerTounsignedInt:
@@ -438,6 +442,9 @@ SOAP_FMAC3 void SOAP_FMAC4 soap_markelement(struct soap *soap, const void *ptr, 
 		break;
 	case SOAP_TYPE_tMessage:
 		soap_serialize_tMessage(soap, (const struct tMessage *)ptr);
+		break;
+	case SOAP_TYPE_PointerToblackJackns__tBlock:
+		soap_serialize_PointerToblackJackns__tBlock(soap, (struct tBlock *const*)ptr);
 		break;
 	case SOAP_TYPE_PointerToint:
 		soap_serialize_PointerToint(soap, (int *const*)ptr);
@@ -1131,6 +1138,7 @@ SOAP_FMAC3 void SOAP_FMAC4 soap_default_blackJackns__getStatus(struct soap *soap
 {
 	(void)soap; (void)a; /* appease -Wall -Werror */
 	soap_default_blackJackns__tMessage(soap, &a->playerName);
+	a->status = NULL;
 }
 
 SOAP_FMAC3 void SOAP_FMAC4 soap_serialize_blackJackns__getStatus(struct soap *soap, const struct blackJackns__getStatus *a)
@@ -1138,6 +1146,7 @@ SOAP_FMAC3 void SOAP_FMAC4 soap_serialize_blackJackns__getStatus(struct soap *so
 	(void)soap; (void)a; /* appease -Wall -Werror */
 #ifndef WITH_NOIDREF
 	soap_serialize_blackJackns__tMessage(soap, &a->playerName);
+	soap_serialize_PointerToblackJackns__tBlock(soap, &a->status);
 #endif
 }
 
@@ -1148,12 +1157,15 @@ SOAP_FMAC3 int SOAP_FMAC4 soap_out_blackJackns__getStatus(struct soap *soap, con
 		return soap->error;
 	if (soap_out_blackJackns__tMessage(soap, "playerName", -1, &a->playerName, ""))
 		return soap->error;
+	if (soap_out_PointerToblackJackns__tBlock(soap, "status", -1, &a->status, ""))
+		return soap->error;
 	return soap_element_end_out(soap, tag);
 }
 
 SOAP_FMAC3 struct blackJackns__getStatus * SOAP_FMAC4 soap_in_blackJackns__getStatus(struct soap *soap, const char *tag, struct blackJackns__getStatus *a, const char *type)
 {
 	size_t soap_flag_playerName = 1;
+	size_t soap_flag_status = 1;
 	if (soap_element_begin_in(soap, tag, 0, NULL))
 		return NULL;
 	(void)type; /* appease -Wall -Werror */
@@ -1168,6 +1180,12 @@ SOAP_FMAC3 struct blackJackns__getStatus * SOAP_FMAC4 soap_in_blackJackns__getSt
 			if (soap_flag_playerName && soap->error == SOAP_TAG_MISMATCH)
 			{	if (soap_in_blackJackns__tMessage(soap, "playerName", &a->playerName, "blackJackns:tMessage"))
 				{	soap_flag_playerName--;
+					continue;
+				}
+			}
+			if (soap_flag_status && soap->error == SOAP_TAG_MISMATCH)
+			{	if (soap_in_PointerToblackJackns__tBlock(soap, "status", &a->status, "blackJackns:tBlock"))
+				{	soap_flag_status--;
 					continue;
 				}
 			}
@@ -1224,14 +1242,14 @@ SOAP_FMAC3 struct blackJackns__getStatus * SOAP_FMAC4 soap_get_blackJackns__getS
 SOAP_FMAC3 void SOAP_FMAC4 soap_default_blackJackns__getStatusResponse(struct soap *soap, struct blackJackns__getStatusResponse *a)
 {
 	(void)soap; (void)a; /* appease -Wall -Werror */
-	a->gameId = NULL;
+	a->result = NULL;
 }
 
 SOAP_FMAC3 void SOAP_FMAC4 soap_serialize_blackJackns__getStatusResponse(struct soap *soap, const struct blackJackns__getStatusResponse *a)
 {
 	(void)soap; (void)a; /* appease -Wall -Werror */
 #ifndef WITH_NOIDREF
-	soap_serialize_PointerToint(soap, &a->gameId);
+	soap_serialize_PointerToint(soap, &a->result);
 #endif
 }
 
@@ -1240,14 +1258,14 @@ SOAP_FMAC3 int SOAP_FMAC4 soap_out_blackJackns__getStatusResponse(struct soap *s
 	(void)soap; (void)tag; (void)id; (void)a; (void)type; /* appease -Wall -Werror */
 	if (soap_element_begin_out(soap, tag, soap_embedded_id(soap, id, a, SOAP_TYPE_blackJackns__getStatusResponse), type))
 		return soap->error;
-	if (soap_out_PointerToint(soap, "gameId", -1, &a->gameId, ""))
+	if (soap_out_PointerToint(soap, "result", -1, &a->result, ""))
 		return soap->error;
 	return soap_element_end_out(soap, tag);
 }
 
 SOAP_FMAC3 struct blackJackns__getStatusResponse * SOAP_FMAC4 soap_in_blackJackns__getStatusResponse(struct soap *soap, const char *tag, struct blackJackns__getStatusResponse *a, const char *type)
 {
-	size_t soap_flag_gameId = 1;
+	size_t soap_flag_result = 1;
 	if (soap_element_begin_in(soap, tag, 0, NULL))
 		return NULL;
 	(void)type; /* appease -Wall -Werror */
@@ -1259,9 +1277,9 @@ SOAP_FMAC3 struct blackJackns__getStatusResponse * SOAP_FMAC4 soap_in_blackJackn
 	{
 		for (;;)
 		{	soap->error = SOAP_TAG_MISMATCH;
-			if (soap_flag_gameId && soap->error == SOAP_TAG_MISMATCH)
-			{	if (soap_in_PointerToint(soap, "gameId", &a->gameId, "xsd:int"))
-				{	soap_flag_gameId--;
+			if (soap_flag_result && soap->error == SOAP_TAG_MISMATCH)
+			{	if (soap_in_PointerToint(soap, "result", &a->result, "xsd:int"))
+				{	soap_flag_result--;
 					continue;
 				}
 			}
@@ -2336,6 +2354,60 @@ SOAP_FMAC3 struct SOAP_ENV__Code ** SOAP_FMAC4 soap_get_PointerToSOAP_ENV__Code(
 }
 
 #endif
+
+SOAP_FMAC3 void SOAP_FMAC4 soap_serialize_PointerToblackJackns__tBlock(struct soap *soap, struct tBlock *const*a)
+{
+	(void)soap; (void)a; /* appease -Wall -Werror */
+#ifndef WITH_NOIDREF
+	if (!soap_reference(soap, *a, SOAP_TYPE_blackJackns__tBlock))
+		soap_serialize_blackJackns__tBlock(soap, *a);
+#endif
+}
+
+SOAP_FMAC3 int SOAP_FMAC4 soap_out_PointerToblackJackns__tBlock(struct soap *soap, const char *tag, int id, struct tBlock *const*a, const char *type)
+{
+	id = soap_element_id(soap, tag, id, *a, NULL, 0, type, SOAP_TYPE_blackJackns__tBlock, NULL);
+	if (id < 0)
+		return soap->error;
+	return soap_out_blackJackns__tBlock(soap, tag, id, *a, type);
+}
+
+SOAP_FMAC3 struct tBlock ** SOAP_FMAC4 soap_in_PointerToblackJackns__tBlock(struct soap *soap, const char *tag, struct tBlock **a, const char *type)
+{
+	(void)type; /* appease -Wall -Werror */
+	if (soap_element_begin_in(soap, tag, 1, NULL))
+		return NULL;
+	if (!a)
+		if (!(a = (struct tBlock **)soap_malloc(soap, sizeof(struct tBlock *))))
+			return NULL;
+	*a = NULL;
+	if (!soap->null && *soap->href != '#')
+	{	soap_revert(soap);
+		if (!(*a = soap_in_blackJackns__tBlock(soap, tag, *a, type)))
+			return NULL;
+	}
+	else
+	{	a = (struct tBlock **)soap_id_lookup(soap, soap->href, (void**)a, SOAP_TYPE_blackJackns__tBlock, sizeof(struct tBlock), 0, NULL);
+		if (soap->body && soap_element_end_in(soap, tag))
+			return NULL;
+	}
+	return a;
+}
+
+SOAP_FMAC3 int SOAP_FMAC4 soap_put_PointerToblackJackns__tBlock(struct soap *soap, struct tBlock *const*a, const char *tag, const char *type)
+{
+	if (soap_out_PointerToblackJackns__tBlock(soap, tag ? tag : "blackJackns:tBlock", -2, a, type))
+		return soap->error;
+	return soap_putindependent(soap);
+}
+
+SOAP_FMAC3 struct tBlock ** SOAP_FMAC4 soap_get_PointerToblackJackns__tBlock(struct soap *soap, struct tBlock **p, const char *tag, const char *type)
+{
+	if ((p = soap_in_PointerToblackJackns__tBlock(soap, tag, p, type)))
+		if (soap_getindependent(soap))
+			return NULL;
+	return p;
+}
 
 SOAP_FMAC3 void SOAP_FMAC4 soap_serialize_PointerToint(struct soap *soap, int *const*a)
 {

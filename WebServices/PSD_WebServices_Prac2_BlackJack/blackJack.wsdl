@@ -69,10 +69,11 @@
 
 <message name="getStatusRequest">
   <part name="playerName" type="blackJackns:tMessage"/><!-- blackJackns__getStatus::playerName -->
+  <part name="status" type="blackJackns:tBlock"/><!-- blackJackns__getStatus::status -->
 </message>
 
 <message name="getStatusResponse">
-  <part name="gameId" type="xsd:int"/><!-- blackJackns__getStatus::gameId -->
+  <part name="result" type="xsd:int"/><!-- blackJackns__getStatus::result -->
 </message>
 
 <portType name="blackJackPortType">
