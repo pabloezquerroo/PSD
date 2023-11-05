@@ -90,16 +90,18 @@ int main(int argc, char **argv){
                         {
                         case ERROR_NAME_REPEATED:
                                 printf("Error: Nombre ya existente\n");
-                                break;
+                        	break;
                         case ERROR_SERVER_FULL:
-                                printf("Error: Servidor Completo\n");
-                        break;
+                                printf("Error: Servidor completo\n");
+                        	break;
                         default:
-                                break;
+								printf("¡Registro Correcto! Partida %d\n", resCode);
+								gameId=resCode;
+                            break;
                         }
                 }
                 while(!endOfGame){
-                        blackJackns__getStatus(&soap, playerName, &resCode);
+                        blackJackns__getStatus(&soap,playerName, &gameStatus, &resCode);
                         printFancyDeck(&gameStatus.deck);
                 }
 
