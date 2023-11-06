@@ -192,11 +192,11 @@ buscaHueco(){
 
 int blackJackns__register (struct soap *soap, blackJackns__tMessage playerName, int* result){
 		
+    printf("Llega\n");
 	int gameIndex;
 
     // Set \0 at the end of the string
     playerName.msg[playerName.__size] = 0;
-
     if (DEBUG_SERVER)
             printf ("[Register] Registering new player -> [%s]\n", playerName.msg);
 
@@ -462,7 +462,6 @@ int main(int argc, char **argv){
         soap.max_keep_alive = 100; // max keep-alive sequence
 
         initServerStructures(&soap);
-
         // Get listening port
         port = atoi(argv[1]);
 

@@ -18,7 +18,7 @@ A commercial use license is available from Genivia Inc., contact@genivia.com
 
 #include "soapH.h"
 
-SOAP_SOURCE_STAMP("@(#) soapC.c ver 2.8.131 2023-11-06 18:08:05 GMT")
+SOAP_SOURCE_STAMP("@(#) soapC.c ver 2.8.131 2023-11-06 18:36:16 GMT")
 
 
 #ifndef WITH_NOGLOBAL

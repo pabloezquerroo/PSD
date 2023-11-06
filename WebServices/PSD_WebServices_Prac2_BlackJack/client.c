@@ -86,7 +86,6 @@ int main(int argc, char **argv){
 			fgets(playerName.msg, STRING_LENGTH-1, stdin);
 			playerName.__size= strlen(playerName.msg)-1;
 			soap_call_blackJackns__register(&soap, serverURL, "", playerName, &resCode);
-			system("clear");
 			switch (resCode)
 			{
 			case ERROR_NAME_REPEATED:
