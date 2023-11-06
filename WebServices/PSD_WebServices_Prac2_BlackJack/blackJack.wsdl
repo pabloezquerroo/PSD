@@ -82,7 +82,7 @@
 </message>
 
 <message name="playermoveResponse">
-  <part name="result" type="xsd:int"/><!-- blackJackns__playermove::result -->
+  <part name="status" type="blackJackns:tBlock"/><!-- blackJackns__playermove::status -->
 </message>
 
 <portType name="blackJackPortType">

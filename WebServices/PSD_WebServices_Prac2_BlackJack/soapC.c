@@ -18,7 +18,7 @@ A commercial use license is available from Genivia Inc., contact@genivia.com
 
 #include "soapH.h"
 
-SOAP_SOURCE_STAMP("@(#) soapC.c ver 2.8.131 2023-11-06 12:41:10 GMT")
+SOAP_SOURCE_STAMP("@(#) soapC.c ver 2.8.131 2023-11-06 18:08:05 GMT")
 
 
 #ifndef WITH_NOGLOBAL
@@ -1264,14 +1264,14 @@ SOAP_FMAC3 struct blackJackns__playermove * SOAP_FMAC4 soap_get_blackJackns__pla
 SOAP_FMAC3 void SOAP_FMAC4 soap_default_blackJackns__playermoveResponse(struct soap *soap, struct blackJackns__playermoveResponse *a)
 {
 	(void)soap; (void)a; /* appease -Wall -Werror */
-	a->result = NULL;
+	a->status = NULL;
 }
 
 SOAP_FMAC3 void SOAP_FMAC4 soap_serialize_blackJackns__playermoveResponse(struct soap *soap, const struct blackJackns__playermoveResponse *a)
 {
 	(void)soap; (void)a; /* appease -Wall -Werror */
 #ifndef WITH_NOIDREF
-	soap_serialize_PointerToint(soap, &a->result);
+	soap_serialize_PointerToblackJackns__tBlock(soap, &a->status);
 #endif
 }
 
@@ -1280,14 +1280,14 @@ SOAP_FMAC3 int SOAP_FMAC4 soap_out_blackJackns__playermoveResponse(struct soap *
 	(void)soap; (void)tag; (void)id; (void)a; (void)type; /* appease -Wall -Werror */
 	if (soap_element_begin_out(soap, tag, soap_embedded_id(soap, id, a, SOAP_TYPE_blackJackns__playermoveResponse), type))
 		return soap->error;
-	if (soap_out_PointerToint(soap, "result", -1, &a->result, ""))
+	if (soap_out_PointerToblackJackns__tBlock(soap, "status", -1, &a->status, ""))
 		return soap->error;
 	return soap_element_end_out(soap, tag);
 }
 
 SOAP_FMAC3 struct blackJackns__playermoveResponse * SOAP_FMAC4 soap_in_blackJackns__playermoveResponse(struct soap *soap, const char *tag, struct blackJackns__playermoveResponse *a, const char *type)
 {
-	size_t soap_flag_result = 1;
+	size_t soap_flag_status = 1;
 	if (soap_element_begin_in(soap, tag, 0, NULL))
 		return NULL;
 	(void)type; /* appease -Wall -Werror */
@@ -1299,9 +1299,9 @@ SOAP_FMAC3 struct blackJackns__playermoveResponse * SOAP_FMAC4 soap_in_blackJack
 	{
 		for (;;)
 		{	soap->error = SOAP_TAG_MISMATCH;
-			if (soap_flag_result && soap->error == SOAP_TAG_MISMATCH)
-			{	if (soap_in_PointerToint(soap, "result", &a->result, "xsd:int"))
-				{	soap_flag_result--;
+			if (soap_flag_status && soap->error == SOAP_TAG_MISMATCH)
+			{	if (soap_in_PointerToblackJackns__tBlock(soap, "status", &a->status, "blackJackns:tBlock"))
+				{	soap_flag_status--;
 					continue;
 				}
 			}

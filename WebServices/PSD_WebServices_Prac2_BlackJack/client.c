@@ -85,7 +85,7 @@ int main(int argc, char **argv){
 			memset(gameStatus.msgStruct.msg, 0, STRING_LENGTH);
 			fgets(playerName.msg, STRING_LENGTH-1, stdin);
 			playerName.__size= strlen(playerName.msg)-1;
-			blackJackns__register(&soap, playerName, &resCode);
+			soap_call_blackJackns__register(&soap, serverURL, "", playerName, &resCode);
 			system("clear");
 			switch (resCode)
 			{
@@ -102,16 +102,19 @@ int main(int argc, char **argv){
 			}
 		}
 		while(!endOfGame){
-			blackJackns__getStatus(&soap, playerName, &gameStatus, &resCode);
+			soap_call_blackJackns__getStatus(&soap, serverURL, "", playerName, &gameStatus, &resCode);
 			printf("Game status: %s\n", gameStatus.msgStruct.msg);
+			printf("Mi mazo: \n");
+			printFancyDeck(&gameStatus.deck.cards);
 			if (resCode==TRUE){ // partida finalizada
 				endOfGame=TRUE;
 			}else{
-				if(gameStatus.code==TURN_PLAY){
+				while (gameStatus.code==TURN_PLAY){
 					playerMove=readOption();
-					blackJackns__playermove(&soap, playerName, playerMove, &resCode);
-				}else{
-					printf("Waiting for the other player...\n");
+					soap_call_blackJackns__playermove(&soap, serverURL, "", playerName, playerMove, &gameStatus);
+					printf(gameStatus.msgStruct.msg);
+					printf("Mi mazo: \n");
+					printFancyDeck(&gameStatus.deck.cards);
 				}
 			}
 		}

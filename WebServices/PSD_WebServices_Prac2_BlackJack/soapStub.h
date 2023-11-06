@@ -141,8 +141,8 @@ struct blackJackns__getStatus {
 #define SOAP_TYPE_blackJackns__playermoveResponse (25)
 /* complex XML schema type 'blackJackns:playermoveResponse': */
 struct blackJackns__playermoveResponse {
-        /** Optional element 'result' of XML schema type 'xsd:int' */
-        int *result;
+        /** Optional element 'status' of XML schema type 'blackJackns:tBlock' */
+        struct tBlock *status;
 };
 #endif
 
@@ -470,11 +470,11 @@ typedef struct tBlock blackJackns__tBlock;
     SOAP_FMAC5 int SOAP_FMAC6 soap_recv_blackJackns__getStatus(struct soap *soap, int *result);
     
     /** Web service synchronous operation 'soap_call_blackJackns__playermove' to the specified endpoint and SOAP Action header, returns SOAP_OK or error code */
-    SOAP_FMAC5 int SOAP_FMAC6 soap_call_blackJackns__playermove(struct soap *soap, const char *soap_endpoint, const char *soap_action, struct tMessage playerName, unsigned int playerMove, int *result);
+    SOAP_FMAC5 int SOAP_FMAC6 soap_call_blackJackns__playermove(struct soap *soap, const char *soap_endpoint, const char *soap_action, struct tMessage playerName, unsigned int playerMove, struct tBlock *status);
     /** Web service asynchronous operation 'soap_send_blackJackns__playermove' to send a request message to the specified endpoint and SOAP Action header, returns SOAP_OK or error code */
     SOAP_FMAC5 int SOAP_FMAC6 soap_send_blackJackns__playermove(struct soap *soap, const char *soap_endpoint, const char *soap_action, struct tMessage playerName, unsigned int playerMove);
     /** Web service asynchronous operation 'soap_recv_blackJackns__playermove' to receive a response message from the connected endpoint, returns SOAP_OK or error code */
-    SOAP_FMAC5 int SOAP_FMAC6 soap_recv_blackJackns__playermove(struct soap *soap, int *result);
+    SOAP_FMAC5 int SOAP_FMAC6 soap_recv_blackJackns__playermove(struct soap *soap, struct tBlock *status);
 
 /******************************************************************************\
  *                                                                            *
@@ -487,7 +487,7 @@ typedef struct tBlock blackJackns__tBlock;
     /** Web service operation 'blackJackns__getStatus' implementation, should return SOAP_OK or error code */
     SOAP_FMAC5 int SOAP_FMAC6 blackJackns__getStatus(struct soap*, struct tMessage playerName, struct tBlock *status, int *result);
     /** Web service operation 'blackJackns__playermove' implementation, should return SOAP_OK or error code */
-    SOAP_FMAC5 int SOAP_FMAC6 blackJackns__playermove(struct soap*, struct tMessage playerName, unsigned int playerMove, int *result);
+    SOAP_FMAC5 int SOAP_FMAC6 blackJackns__playermove(struct soap*, struct tMessage playerName, unsigned int playerMove, struct tBlock *status);
 
 /******************************************************************************\
  *                                                                            *

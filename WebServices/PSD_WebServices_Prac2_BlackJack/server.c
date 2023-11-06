@@ -274,6 +274,7 @@ int blackJackns__getStatus(struct soap *soap, blackJackns__tMessage playerName, 
         copyGameStatusStructure(status, "Jugador no encontrado\n", NULL, ERROR_PLAYER_NOT_FOUND);
 
     }else{
+        numJugador=jugador1o2(gameIndex, playerName.msg);
         //comprobamos quien ha ganado la mano
         ganadorMano=compruebaGanadorMano(&games[gameIndex].player1Deck, &games[gameIndex].player2Deck);
 
@@ -367,10 +368,10 @@ int blackJackns__getStatus(struct soap *soap, blackJackns__tMessage playerName, 
             }else{ // Turno del rival
                 if (numJugador==player1){ // Jugador 1
                     sprintf(mensaje, "\nEspera tu turno\n");
-                    copyGameStatusStructure(status, mensaje, &games[gameIndex].player1Deck, TURN_WAIT); 
+                    copyGameStatusStructure(status, mensaje, &games[gameIndex].player2Deck, TURN_WAIT); //Le paso el deck del current player para que lo imprima
                 }else{ // Jugador 2
                     sprintf(mensaje, "\nEspera tu turno\n");
-                    copyGameStatusStructure(status, mensaje, &games[gameIndex].player2Deck, TURN_WAIT); 
+                    copyGameStatusStructure(status, mensaje, &games[gameIndex].player1Deck, TURN_WAIT); //Le paso el deck del current player para que lo imprima
                 }
             }
         }
@@ -378,14 +379,45 @@ int blackJackns__getStatus(struct soap *soap, blackJackns__tMessage playerName, 
     return SOAP_OK;
 }
 
-int blackJackns__playermove(struct soap *soap, blackJackns__tMessage playerName, unsigned int playerMove, int* result){
+int blackJackns__playermove(struct soap *soap, blackJackns__tMessage playerName, unsigned int playerMove, blackJackns__tBlock* status){
+    int gameIndex = buscaJugador(playerName.msg);
+    int numJugador=jugador1o2(gameIndex, playerName.msg);
+
     switch (playerMove)
     {
     case PLAYER_HIT_CARD:
-        /* code */
+    if(numJugador==player1){
+        recibeCartas(&games[gameIndex].player1Deck, &games[gameIndex].gameDeck, 1);
+        if(calculatePoints(&games[gameIndex].player1Deck)>GOAL_GAME){ // Se ha pasado
+            sprintf(status->msgStruct.msg, "\nTienes %d puntos, te has pasado.\n", calculatePoints(&games[gameIndex].player1Deck));
+            copyGameStatusStructure(status, status->msgStruct.msg, &games[gameIndex].player1Deck, TURN_WAIT);
+            games[gameIndex].currentPlayer=player2;
+        }else{ //puede seguir jugando
+            sprintf(status->msgStruct.msg, "Puedes seguir jugando, tienes %d puntos.", calculatePoints(&games[gameIndex].player1Deck));
+            copyGameStatusStructure(status, status->msgStruct.msg, &games[gameIndex].player1Deck, TURN_PLAY);
+        }
+    }else{
+        recibeCartas(&games[gameIndex].player2Deck, &games[gameIndex].gameDeck, 1);
+        if(calculatePoints(&games[gameIndex].player2Deck)>GOAL_GAME){ // Se ha pasado
+            sprintf(status->msgStruct.msg, "\nTienes %d puntos, te has pasado.\n", calculatePoints(&games[gameIndex].player2Deck));
+            copyGameStatusStructure(status, status->msgStruct.msg, &games[gameIndex].player2Deck, TURN_WAIT);
+            games[gameIndex].currentPlayer=player1;
+        }else{ //puede seguir jugando
+            sprintf(status->msgStruct.msg, "Puedes seguir jugando, tienes %d puntos.", calculatePoints(&games[gameIndex].player2Deck));
+            copyGameStatusStructure(status, status->msgStruct.msg, &games[gameIndex].player2Deck, TURN_PLAY);
+        }
+    }
         break;
     case PLAYER_STAND:
-        /* code */
+        if(numJugador==player1){
+            sprintf(status->msgStruct.msg, "\nTe plantas con %d puntos.\n", calculatePoints(&games[gameIndex].player1Deck));
+            copyGameStatusStructure(status, status->msgStruct.msg, &games[gameIndex].player1Deck, TURN_WAIT);
+            games[gameIndex].currentPlayer=player2;
+        }else{
+            sprintf(status->msgStruct.msg, "\nTe plantas con %d puntos.\n", calculatePoints(&games[gameIndex].player2Deck));
+            copyGameStatusStructure(status, status->msgStruct.msg, &games[gameIndex].player2Deck, TURN_WAIT);
+            games[gameIndex].currentPlayer=player1;
+        }
         break;
     default:
         break;
