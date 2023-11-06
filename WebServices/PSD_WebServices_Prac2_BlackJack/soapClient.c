@@ -17,7 +17,7 @@ A commercial use license is available from Genivia Inc., contact@genivia.com
 #endif
 #include "soapH.h"
 
-SOAP_SOURCE_STAMP("@(#) soapClient.c ver 2.8.131 2023-11-05 16:03:00 GMT")
+SOAP_SOURCE_STAMP("@(#) soapClient.c ver 2.8.131 2023-11-06 12:41:10 GMT")
 
 
 SOAP_FMAC5 int SOAP_FMAC6 soap_call_blackJackns__register(struct soap *soap, const char *soap_endpoint, const char *soap_action, struct tMessage playerName, int *result)
@@ -148,6 +148,72 @@ SOAP_FMAC5 int SOAP_FMAC6 soap_recv_blackJackns__getStatus(struct soap *soap, in
 		return soap_closesock(soap);
 	if (result && soap_tmp_blackJackns__getStatusResponse->result)
 		*result = *soap_tmp_blackJackns__getStatusResponse->result;
+	return soap_closesock(soap);
+}
+
+SOAP_FMAC5 int SOAP_FMAC6 soap_call_blackJackns__playermove(struct soap *soap, const char *soap_endpoint, const char *soap_action, struct tMessage playerName, unsigned int playerMove, int *result)
+{	if (soap_send_blackJackns__playermove(soap, soap_endpoint, soap_action, playerName, playerMove) || soap_recv_blackJackns__playermove(soap, result))
+		return soap->error;
+	return SOAP_OK;
+}
+
+SOAP_FMAC5 int SOAP_FMAC6 soap_send_blackJackns__playermove(struct soap *soap, const char *soap_endpoint, const char *soap_action, struct tMessage playerName, unsigned int playerMove)
+{	struct blackJackns__playermove soap_tmp_blackJackns__playermove;
+	if (soap_endpoint == NULL)
+		soap_endpoint = "http//localhost:10000";
+	soap_tmp_blackJackns__playermove.playerName = playerName;
+	soap_tmp_blackJackns__playermove.playerMove = playerMove;
+	soap_begin(soap);
+	soap->encodingStyle = ""; /* use SOAP encoding style */
+	soap_serializeheader(soap);
+	soap_serialize_blackJackns__playermove(soap, &soap_tmp_blackJackns__playermove);
+	if (soap_begin_count(soap))
+		return soap->error;
+	if ((soap->mode & SOAP_IO_LENGTH))
+	{	if (soap_envelope_begin_out(soap)
+		 || soap_putheader(soap)
+		 || soap_body_begin_out(soap)
+		 || soap_put_blackJackns__playermove(soap, &soap_tmp_blackJackns__playermove, "blackJackns:playermove", "")
+		 || soap_body_end_out(soap)
+		 || soap_envelope_end_out(soap))
+			 return soap->error;
+	}
+	if (soap_end_count(soap))
+		return soap->error;
+	if (soap_connect(soap, soap_endpoint, soap_action)
+	 || soap_envelope_begin_out(soap)
+	 || soap_putheader(soap)
+	 || soap_body_begin_out(soap)
+	 || soap_put_blackJackns__playermove(soap, &soap_tmp_blackJackns__playermove, "blackJackns:playermove", "")
+	 || soap_body_end_out(soap)
+	 || soap_envelope_end_out(soap)
+	 || soap_end_send(soap))
+		return soap_closesock(soap);
+	return SOAP_OK;
+}
+
+SOAP_FMAC5 int SOAP_FMAC6 soap_recv_blackJackns__playermove(struct soap *soap, int *result)
+{
+	struct blackJackns__playermoveResponse *soap_tmp_blackJackns__playermoveResponse;
+	if (!result)
+		return soap_closesock(soap);
+	soap_default_int(soap, result);
+	if (soap_begin_recv(soap)
+	 || soap_envelope_begin_in(soap)
+	 || soap_recv_header(soap)
+	 || soap_body_begin_in(soap))
+		return soap_closesock(soap);
+	if (soap_recv_fault(soap, 1))
+		return soap->error;
+	soap_tmp_blackJackns__playermoveResponse = soap_get_blackJackns__playermoveResponse(soap, NULL, "", NULL);
+	if (!soap_tmp_blackJackns__playermoveResponse || soap->error)
+		return soap_recv_fault(soap, 0);
+	if (soap_body_end_in(soap)
+	 || soap_envelope_end_in(soap)
+	 || soap_end_recv(soap))
+		return soap_closesock(soap);
+	if (result && soap_tmp_blackJackns__playermoveResponse->result)
+		*result = *soap_tmp_blackJackns__playermoveResponse->result;
 	return soap_closesock(soap);
 }
 

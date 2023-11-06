@@ -272,8 +272,6 @@ int blackJackns__getStatus(struct soap *soap, blackJackns__tMessage playerName, 
     if(gameIndex==ERROR_PLAYER_NOT_FOUND){
 
         copyGameStatusStructure(status, "Jugador no encontrado\n", NULL, ERROR_PLAYER_NOT_FOUND);
-        printf("Jugador no encontrado\n");
-        result=ERROR_PLAYER_NOT_FOUND;
 
     }else{
         //comprobamos quien ha ganado la mano
@@ -284,13 +282,13 @@ int blackJackns__getStatus(struct soap *soap, blackJackns__tMessage playerName, 
 
                 games[gameIndex].player1Stack+= games[gameIndex].player2Bet;
                 sprintf(mensajeGana, "\nHas ganado la mano, ganas %d monedas\n", games[gameIndex].player2Bet);
-                copyGameStatusStructure(status, mensajeGana, &games[gameIndex].player1Deck, GAME_WIN);
+                copyGameStatusStructure(status, mensajeGana, &games[gameIndex].player1Deck, NULL);
 
             }else{ // Jugador 2
                 
                 games[gameIndex].player2Stack+= games[gameIndex].player1Bet;
                 sprintf(mensajeGana, "\nHas ganado la mano, ganas %d monedas\n", games[gameIndex].player1Bet);
-                copyGameStatusStructure(status, mensajeGana, &games[gameIndex].player2Deck, GAME_WIN);
+                copyGameStatusStructure(status, mensajeGana, &games[gameIndex].player2Deck, NULL);
 
             }
         }else if(ganadorMano==-1){ // Empate en la mano
@@ -310,22 +308,24 @@ int blackJackns__getStatus(struct soap *soap, blackJackns__tMessage playerName, 
 
                 games[gameIndex].player1Stack-= games[gameIndex].player1Bet;
                 sprintf(mensajePierde, "\nHas perdido la mano, pierdes %d monedas\n", games[gameIndex].player1Bet);
-                copyGameStatusStructure(status, mensajePierde, &games[gameIndex].player1Deck, GAME_LOSE);
+                copyGameStatusStructure(status, mensajePierde, &games[gameIndex].player1Deck, NULL);
                 
             }else{ // Jugador 2
 
                 games[gameIndex].player2Stack-= games[gameIndex].player2Bet;
                 sprintf(mensajePierde, "\nHas perdido la mano, pierdes %d monedas\n", games[gameIndex].player2Bet);
-                copyGameStatusStructure(status, mensajePierde, &games[gameIndex].player2Deck, GAME_LOSE);
+                copyGameStatusStructure(status, mensajePierde, &games[gameIndex].player2Deck, NULL);
 
             }
    
         }
-        if(games[gameIndex].endOfGame){
 
-            //comprobamos quien ha ganado la partida
-            ganador= compruebaFin(&games[gameIndex].player1Stack, games[gameIndex].player2Stack);
+        //comprobamos quien ha ganado la partida
+        ganador= compruebaFin(&games[gameIndex].player1Stack, games[gameIndex].player2Stack);
 
+        if(ganador!=-1){
+            result=TRUE;
+            games[gameIndex].endOfGame=TRUE;
             if (numJugador==ganador){ // Ganador de la partida
                 if(numJugador=player1){ // Jugador 1
 
@@ -367,10 +367,10 @@ int blackJackns__getStatus(struct soap *soap, blackJackns__tMessage playerName, 
             }else{ // Turno del rival
                 if (numJugador==player1){ // Jugador 1
                     sprintf(mensaje, "\nEspera tu turno\n");
-                    copyGameStatusStructure(status, mensaje, &games[gameIndex].player2Deck, TURN_WAIT); // Paso el mazo rival para ver sus cartas
+                    copyGameStatusStructure(status, mensaje, &games[gameIndex].player1Deck, TURN_WAIT); 
                 }else{ // Jugador 2
                     sprintf(mensaje, "\nEspera tu turno\n");
-                    copyGameStatusStructure(status, mensaje, &games[gameIndex].player1Deck, TURN_WAIT); // Paso el mazo rival para ver sus cartas
+                    copyGameStatusStructure(status, mensaje, &games[gameIndex].player2Deck, TURN_WAIT); 
                 }
             }
         }
@@ -378,6 +378,19 @@ int blackJackns__getStatus(struct soap *soap, blackJackns__tMessage playerName, 
     return SOAP_OK;
 }
 
+int blackJackns__playermove(struct soap *soap, blackJackns__tMessage playerName, unsigned int playerMove, int* result){
+    switch (playerMove)
+    {
+    case PLAYER_HIT_CARD:
+        /* code */
+        break;
+    case PLAYER_STAND:
+        /* code */
+        break;
+    default:
+        break;
+    }
+}
 void *processRequest(void *soap){
 
 	pthread_detach(pthread_self());

@@ -76,6 +76,15 @@
   <part name="result" type="xsd:int"/><!-- blackJackns__getStatus::result -->
 </message>
 
+<message name="playermoveRequest">
+  <part name="playerName" type="blackJackns:tMessage"/><!-- blackJackns__playermove::playerName -->
+  <part name="playerMove" type="xsd:unsignedInt"/><!-- blackJackns__playermove::playerMove -->
+</message>
+
+<message name="playermoveResponse">
+  <part name="result" type="xsd:int"/><!-- blackJackns__playermove::result -->
+</message>
+
 <portType name="blackJackPortType">
   <operation name="register">
     <documentation>Service definition of function blackJackns__register</documentation>
@@ -86,6 +95,11 @@
     <documentation>Service definition of function blackJackns__getStatus</documentation>
     <input message="tns:getStatusRequest"/>
     <output message="tns:getStatusResponse"/>
+  </operation>
+  <operation name="playermove">
+    <documentation>Service definition of function blackJackns__playermove</documentation>
+    <input message="tns:playermoveRequest"/>
+    <output message="tns:playermoveResponse"/>
   </operation>
 </portType>
 
@@ -101,6 +115,15 @@
     </output>
   </operation>
   <operation name="getStatus">
+    <SOAP:operation style="rpc" soapAction=""/>
+    <input>
+          <SOAP:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:blackJackns"/>
+    </input>
+    <output>
+          <SOAP:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:blackJackns"/>
+    </output>
+  </operation>
+  <operation name="playermove">
     <SOAP:operation style="rpc" soapAction=""/>
     <input>
           <SOAP:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:blackJackns"/>

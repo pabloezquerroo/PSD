@@ -433,6 +433,100 @@ SOAP_FMAC3 struct SOAP_ENV__Header * SOAP_FMAC4 soap_get_SOAP_ENV__Header(struct
 
 #endif
 
+#ifndef SOAP_TYPE_blackJackns__playermove_DEFINED
+#define SOAP_TYPE_blackJackns__playermove_DEFINED
+SOAP_FMAC3 void SOAP_FMAC4 soap_default_blackJackns__playermove(struct soap*, struct blackJackns__playermove *);
+SOAP_FMAC3 void SOAP_FMAC4 soap_serialize_blackJackns__playermove(struct soap*, const struct blackJackns__playermove *);
+SOAP_FMAC3 int SOAP_FMAC4 soap_out_blackJackns__playermove(struct soap*, const char*, int, const struct blackJackns__playermove *, const char*);
+SOAP_FMAC3 struct blackJackns__playermove * SOAP_FMAC4 soap_in_blackJackns__playermove(struct soap*, const char*, struct blackJackns__playermove *, const char*);
+
+SOAP_FMAC3 struct blackJackns__playermove * SOAP_FMAC4 soap_new_blackJackns__playermove(struct soap *soap, int n);
+SOAP_FMAC3 int SOAP_FMAC4 soap_put_blackJackns__playermove(struct soap*, const struct blackJackns__playermove *, const char*, const char*);
+
+#ifndef soap_write_blackJackns__playermove
+#define soap_write_blackJackns__playermove(soap, data) ( soap_free_temp(soap), soap_begin_send(soap) || (soap_serialize_blackJackns__playermove(soap, data), 0) || soap_put_blackJackns__playermove(soap, data, "blackJackns:playermove", "") || soap_end_send(soap), (soap)->error )
+#endif
+
+
+#ifndef soap_PUT_blackJackns__playermove
+#define soap_PUT_blackJackns__playermove(soap, URL, data) ( soap_free_temp(soap), soap_PUT(soap, URL, NULL, "text/xml; charset=utf-8") || (soap_serialize_blackJackns__playermove(soap, data), 0) || soap_put_blackJackns__playermove(soap, data, "blackJackns:playermove", "") || soap_end_send(soap) || soap_recv_empty_response(soap), soap_closesock(soap) )
+#endif
+
+
+#ifndef soap_PATCH_blackJackns__playermove
+#define soap_PATCH_blackJackns__playermove(soap, URL, data) ( soap_free_temp(soap), soap_PATCH(soap, URL, NULL, "text/xml; charset=utf-8") || (soap_serialize_blackJackns__playermove(soap, data), 0) || soap_put_blackJackns__playermove(soap, data, "blackJackns:playermove", "") || soap_end_send(soap) || soap_recv_empty_response(soap), soap_closesock(soap) )
+#endif
+
+
+#ifndef soap_POST_send_blackJackns__playermove
+#define soap_POST_send_blackJackns__playermove(soap, URL, data) ( soap_free_temp(soap), ( soap_POST(soap, URL, NULL, "text/xml; charset=utf-8") || (soap_serialize_blackJackns__playermove(soap, data), 0) || soap_put_blackJackns__playermove(soap, data, "blackJackns:playermove", "") || soap_end_send(soap) ) && soap_closesock(soap), (soap)->error )
+#endif
+
+SOAP_FMAC3 struct blackJackns__playermove * SOAP_FMAC4 soap_get_blackJackns__playermove(struct soap*, struct blackJackns__playermove *, const char*, const char*);
+
+#ifndef soap_read_blackJackns__playermove
+#define soap_read_blackJackns__playermove(soap, data) ( ((data) ? (soap_default_blackJackns__playermove(soap, (data)), 0) : 0) || soap_begin_recv(soap) || !soap_get_blackJackns__playermove(soap, (data), NULL, NULL) || soap_end_recv(soap), (soap)->error )
+#endif
+
+
+#ifndef soap_GET_blackJackns__playermove
+#define soap_GET_blackJackns__playermove(soap, URL, data) ( soap_GET(soap, URL, NULL) || soap_read_blackJackns__playermove(soap, (data)), soap_closesock(soap) )
+#endif
+
+
+#ifndef soap_POST_recv_blackJackns__playermove
+#define soap_POST_recv_blackJackns__playermove(soap, data) ( soap_read_blackJackns__playermove(soap, (data)) || soap_closesock(soap), (soap)->error )
+#endif
+
+#endif
+
+#ifndef SOAP_TYPE_blackJackns__playermoveResponse_DEFINED
+#define SOAP_TYPE_blackJackns__playermoveResponse_DEFINED
+SOAP_FMAC3 void SOAP_FMAC4 soap_default_blackJackns__playermoveResponse(struct soap*, struct blackJackns__playermoveResponse *);
+SOAP_FMAC3 void SOAP_FMAC4 soap_serialize_blackJackns__playermoveResponse(struct soap*, const struct blackJackns__playermoveResponse *);
+SOAP_FMAC3 int SOAP_FMAC4 soap_out_blackJackns__playermoveResponse(struct soap*, const char*, int, const struct blackJackns__playermoveResponse *, const char*);
+SOAP_FMAC3 struct blackJackns__playermoveResponse * SOAP_FMAC4 soap_in_blackJackns__playermoveResponse(struct soap*, const char*, struct blackJackns__playermoveResponse *, const char*);
+
+SOAP_FMAC3 struct blackJackns__playermoveResponse * SOAP_FMAC4 soap_new_blackJackns__playermoveResponse(struct soap *soap, int n);
+SOAP_FMAC3 int SOAP_FMAC4 soap_put_blackJackns__playermoveResponse(struct soap*, const struct blackJackns__playermoveResponse *, const char*, const char*);
+
+#ifndef soap_write_blackJackns__playermoveResponse
+#define soap_write_blackJackns__playermoveResponse(soap, data) ( soap_free_temp(soap), soap_begin_send(soap) || (soap_serialize_blackJackns__playermoveResponse(soap, data), 0) || soap_put_blackJackns__playermoveResponse(soap, data, "blackJackns:playermoveResponse", "") || soap_end_send(soap), (soap)->error )
+#endif
+
+
+#ifndef soap_PUT_blackJackns__playermoveResponse
+#define soap_PUT_blackJackns__playermoveResponse(soap, URL, data) ( soap_free_temp(soap), soap_PUT(soap, URL, NULL, "text/xml; charset=utf-8") || (soap_serialize_blackJackns__playermoveResponse(soap, data), 0) || soap_put_blackJackns__playermoveResponse(soap, data, "blackJackns:playermoveResponse", "") || soap_end_send(soap) || soap_recv_empty_response(soap), soap_closesock(soap) )
+#endif
+
+
+#ifndef soap_PATCH_blackJackns__playermoveResponse
+#define soap_PATCH_blackJackns__playermoveResponse(soap, URL, data) ( soap_free_temp(soap), soap_PATCH(soap, URL, NULL, "text/xml; charset=utf-8") || (soap_serialize_blackJackns__playermoveResponse(soap, data), 0) || soap_put_blackJackns__playermoveResponse(soap, data, "blackJackns:playermoveResponse", "") || soap_end_send(soap) || soap_recv_empty_response(soap), soap_closesock(soap) )
+#endif
+
+
+#ifndef soap_POST_send_blackJackns__playermoveResponse
+#define soap_POST_send_blackJackns__playermoveResponse(soap, URL, data) ( soap_free_temp(soap), ( soap_POST(soap, URL, NULL, "text/xml; charset=utf-8") || (soap_serialize_blackJackns__playermoveResponse(soap, data), 0) || soap_put_blackJackns__playermoveResponse(soap, data, "blackJackns:playermoveResponse", "") || soap_end_send(soap) ) && soap_closesock(soap), (soap)->error )
+#endif
+
+SOAP_FMAC3 struct blackJackns__playermoveResponse * SOAP_FMAC4 soap_get_blackJackns__playermoveResponse(struct soap*, struct blackJackns__playermoveResponse *, const char*, const char*);
+
+#ifndef soap_read_blackJackns__playermoveResponse
+#define soap_read_blackJackns__playermoveResponse(soap, data) ( ((data) ? (soap_default_blackJackns__playermoveResponse(soap, (data)), 0) : 0) || soap_begin_recv(soap) || !soap_get_blackJackns__playermoveResponse(soap, (data), NULL, NULL) || soap_end_recv(soap), (soap)->error )
+#endif
+
+
+#ifndef soap_GET_blackJackns__playermoveResponse
+#define soap_GET_blackJackns__playermoveResponse(soap, URL, data) ( soap_GET(soap, URL, NULL) || soap_read_blackJackns__playermoveResponse(soap, (data)), soap_closesock(soap) )
+#endif
+
+
+#ifndef soap_POST_recv_blackJackns__playermoveResponse
+#define soap_POST_recv_blackJackns__playermoveResponse(soap, data) ( soap_read_blackJackns__playermoveResponse(soap, (data)) || soap_closesock(soap), (soap)->error )
+#endif
+
+#endif
+
 #ifndef SOAP_TYPE_blackJackns__getStatus_DEFINED
 #define SOAP_TYPE_blackJackns__getStatus_DEFINED
 SOAP_FMAC3 void SOAP_FMAC4 soap_default_blackJackns__getStatus(struct soap*, struct blackJackns__getStatus *);

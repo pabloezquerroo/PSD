@@ -104,9 +104,15 @@ int main(int argc, char **argv){
 		while(!endOfGame){
 			blackJackns__getStatus(&soap, playerName, &gameStatus, &resCode);
 			printf("Game status: %s\n", gameStatus.msgStruct.msg);
-			if(gameStatus.code==TURN_PLAY){
-				playerMove=readOption();
-				blackJackns__playermove(&soap, playerName, gameId, playerMove, &resCode);
+			if (resCode==TRUE){ // partida finalizada
+				endOfGame=TRUE;
+			}else{
+				if(gameStatus.code==TURN_PLAY){
+					playerMove=readOption();
+					blackJackns__playermove(&soap, playerName, playerMove, &resCode);
+				}else{
+					printf("Waiting for the other player...\n");
+				}
 			}
 		}
 
