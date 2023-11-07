@@ -156,27 +156,26 @@ int nombreValido(xsd__string nombre){
 }
 
 int buscaJugador(xsd__string playerName){
-        int i = -1;
+        int i = 0;
         int jugExistente=FALSE;
         int gameIndex=ERROR_PLAYER_NOT_FOUND;
         while(i < MAX_GAMES && !jugExistente){
             // Tries to locate player in game i
-            i++;
             if (strcmp (games[i].player1Name, playerName) == 0  || (games[i].player2Name, playerName) == 0){
                     jugExistente = TRUE;
                     gameIndex=i;
             }
+            i++;
         }
         return gameIndex;
 }
 
 buscaHueco(){
-    int i = -1;
+    int i = 0;
     int hayHueco =FALSE;
 	int gameIndex = ERROR_SERVER_FULL;
 	// For every game
 	while(i < MAX_GAMES && !hayHueco){
-        i++;
 		// Locks game i
 		//pthread_mutex_lock(&games[i].players_mutex);//<--------------------------------------
 		// If is an empty game
@@ -184,6 +183,7 @@ buscaHueco(){
 			hayHueco = TRUE;
             gameIndex=i;
         }
+        i++;
 		//pthread_mutex_unlock(&games[i].players_mutex);//<--------------------------------------
 	}
 	// return valid game
@@ -192,7 +192,6 @@ buscaHueco(){
 
 int blackJackns__register (struct soap *soap, blackJackns__tMessage playerName, int* result){
 		
-    printf("Llega\n");
 	int gameIndex;
 
     // Set \0 at the end of the string

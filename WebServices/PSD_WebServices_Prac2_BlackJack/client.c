@@ -80,7 +80,7 @@ int main(int argc, char **argv){
 		// Init and read the message
 
 		resCode=-1;
-		while(resCode <= 0){ // Mientras no registrado
+		while(resCode < 0){ // Mientras no registrado
 			printf("Enter your name: ");
 			memset(gameStatus.msgStruct.msg, 0, STRING_LENGTH);
 			fgets(playerName.msg, STRING_LENGTH-1, stdin);
