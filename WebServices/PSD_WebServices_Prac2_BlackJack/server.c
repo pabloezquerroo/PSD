@@ -23,9 +23,6 @@ void initGame (tGame *game){
 	// Game status variables
 	game->endOfGame = FALSE;
 	game->status = gameEmpty;
-
-    //add
-    game->currentPlayer = player1;
 }
 
 void initServerStructures (struct soap *soap){
@@ -87,13 +84,6 @@ unsigned int getRandomCard (blackJackns__tDeck* deck){
 	return card;
 }
 
-void recibeCartas(blackJackns__tDeck *playerDeck, blackJackns__tDeck *gameDeck, int numCartas){
-        for(int i=0; i<numCartas; i++){
-                playerDeck->cards[playerDeck->__size]=getRandomCard(gameDeck);
-                (playerDeck->__size)++;
-        }
-}
-
 void copyGameStatusStructure (blackJackns__tBlock* status, char* message, blackJackns__tDeck *newDeck, int newCode){
 
 	// Copy the message
@@ -147,91 +137,61 @@ int nombreValido(xsd__string nombre){
                 serverLleno = TRUE;
         }
     }
-    if(nombreExistente)
+    if(nombreExistente){
+        printf("Nombre %s ya existente, no es posible registrarse\n", nombre);
         return ERROR_NAME_REPEATED;
+    }else if(serverLleno){
+        printf("Nombre %s ya existente, no es posible registrarse\n", nombre);
+        return ERROR_SERVER_FULL;
+    }
     else if(partidaDisponible)
         return numPartida;
-    else if(serverLleno)
-        return ERROR_SERVER_FULL;
-}
-
-int buscaJugador(xsd__string playerName){
-        int i = -1;
-        int jugExistente=FALSE;
-        int gameIndex=ERROR_PLAYER_NOT_FOUND;
-        while(i < MAX_GAMES && !jugExistente){
-            // Tries to locate player in game i
-            i++;
-            if (strcmp (games[i].player1Name, playerName) == 0  || (games[i].player2Name, playerName) == 0){
-                    jugExistente = TRUE;
-                    gameIndex=i;
-            }
-        }
-        return gameIndex;
-}
-
-buscaHueco(){
-    int i = -1;
-    int hayHueco =FALSE;
-	int gameIndex = ERROR_SERVER_FULL;
-	// For every game
-	while(i < MAX_GAMES && !hayHueco){
-        i++;
-		// Locks game i
-		//pthread_mutex_lock(&games[i].players_mutex);//<--------------------------------------
-		// If is an empty game
-		if(games[i].status != gameReady){
-			hayHueco = TRUE;
-            gameIndex=i;
-        }
-		//pthread_mutex_unlock(&games[i].players_mutex);//<--------------------------------------
-	}
-	// return valid game
-    return gameIndex;
 }
 
 int blackJackns__register (struct soap *soap, blackJackns__tMessage playerName, int* result){
 		
-    printf("Llega\n");
 	int gameIndex;
 
-    // Set \0 at the end of the string
-    playerName.msg[playerName.__size] = 0;
-    if (DEBUG_SERVER)
-            printf ("[Register] Registering new player -> [%s]\n", playerName.msg);
+        // Set \0 at the end of the string
+        playerName.msg[playerName.__size] = 0;
 
-    gameIndex= buscaHueco();
-    
-    if(gameIndex == ERROR_SERVER_FULL){
-        printf("Servidor lleno, no se puede registrar\n");
-        result=ERROR_SERVER_FULL;
-    }
-    else{
-        if(buscaJugador(playerName.msg)==ERROR_PLAYER_NOT_FOUND){ //jugador no existe, se puede registrar       
-            //mutex
-            if(games[gameIndex].status==gameEmpty){
-                strcpy(games[gameIndex].player1Name, playerName.msg);
-            }else if(games[gameIndex].status==gameWaitingPlayer){
-                strcpy(games[gameIndex].player2Name, playerName.msg);
-                games[gameIndex].status=gameReady;
-            }
-            result=gameIndex;
-        }else{ //jugador ya existente
-            printf("Jugador existente, no se puede registrar\n");
-            result=ERROR_NAME_REPEATED;
-        }
-    }
-    
+        if (DEBUG_SERVER)
+                printf ("[Register] Registering new player -> [%s]\n", playerName.msg);
+
+        gameIndex= nombreValido(playerName.msg);
+	
   	return SOAP_OK;
 }
 
-int jugador1o2(int gameIndex, xsd__string playerName){
-    int jug=-1;
-    if (strcmp (games[gameIndex].player1Name, playerName) == 0)
-        jug = 0;
-    else if(strcmp (games[gameIndex].player2Name, playerName) == 0)
-        jug = 1;
-    return jug;
+int blackJackns__getStatus(struct soap *soap, blackJackns__tMessage playerName, int* result){
+        return SOAP_OK;
+}
+
+
+
+/////// MARTIN ////////
+
+unsigned int calculatePoints (blackJackns__tDeck *deck){
+    unsigned int points;
+        // Init...
+        points = 0;
+
+        for (int i=0; i<deck->__size; i++){
+
+            if (deck->cards[i] % SUIT_SIZE < 9)
+                points += (deck->cards[i] % SUIT_SIZE) + 1;
+            else
+                points += FIGURE_VALUE;
+        }
+    return points;
+}
+int compruebaFin(unsigned int *stackA, unsigned int *stackB){
+        if (*stackA==0)
+                return player2;
+        else if (*stackB==0)
+                return player1;
+        else 
+                return -1;
 }
 
 unsigned int compruebaGanadorMano(blackJackns__tDeck *deckP1, blackJackns__tDeck *deckP2){
@@ -250,179 +210,127 @@ unsigned int compruebaGanadorMano(blackJackns__tDeck *deckP1, blackJackns__tDeck
                 return player1;
         }
 }
+////////////////////////////////////////////////////////
 
-int compruebaFin(unsigned int *stackA, unsigned int *stackB){
-        if (*stackA==0)
-                return player2;
-        else if (*stackB==0)
-                return player1;
-        else 
-                return -1;
-}
-
-int blackJackns__getStatus(struct soap *soap, blackJackns__tMessage playerName, blackJackns__tBlock *status, int* result){
-    int ganadorMano=-1;
-    int ganador=-1;
-    int starterPlayer=player1;
-    int numJugador;
-    int gameIndex;
-    xsd__string mensajeGana, mensajePierde, mensajeEmpata, mensaje;
-
-    gameIndex = buscaJugador(playerName.msg);
-    if(gameIndex==ERROR_PLAYER_NOT_FOUND){
-
-        copyGameStatusStructure(status, "Jugador no encontrado\n", NULL, ERROR_PLAYER_NOT_FOUND);
-
-    }else{
-        numJugador=jugador1o2(gameIndex, playerName.msg);
-        //comprobamos quien ha ganado la mano
-        ganadorMano=compruebaGanadorMano(&games[gameIndex].player1Deck, &games[gameIndex].player2Deck);
-
-        if (numJugador==ganadorMano){ // Ganador de la mano
-            if(numJugador=player1){ // Jugador 1
-
-                games[gameIndex].player1Stack+= games[gameIndex].player2Bet;
-                sprintf(mensajeGana, "\nHas ganado la mano, ganas %d monedas\n", games[gameIndex].player2Bet);
-                copyGameStatusStructure(status, mensajeGana, &games[gameIndex].player1Deck, NULL);
-
-            }else{ // Jugador 2
-                
-                games[gameIndex].player2Stack+= games[gameIndex].player1Bet;
-                sprintf(mensajeGana, "\nHas ganado la mano, ganas %d monedas\n", games[gameIndex].player1Bet);
-                copyGameStatusStructure(status, mensajeGana, &games[gameIndex].player2Deck, NULL);
-
-            }
-        }else if(ganadorMano==-1){ // Empate en la mano
-            if (numJugador==player1){ // Jugador 1
-
-                sprintf(mensajeEmpata, "\nEmpate, no pierdes monedas\n");
-                copyGameStatusStructure(status, mensajeEmpata, &games[gameIndex].player1Deck, NULL);
-
-            }else{ // Jugador 2
-
-                sprintf(mensajeEmpata, "\nEmpate, no pierdes monedas\n");
-                copyGameStatusStructure(status, mensajeEmpata, &games[gameIndex].player2Deck, NULL);
-            }
-        
-        }else{ // Perdedor en la mano 
-            if (numJugador==player1){ // Jugador 1
-
-                games[gameIndex].player1Stack-= games[gameIndex].player1Bet;
-                sprintf(mensajePierde, "\nHas perdido la mano, pierdes %d monedas\n", games[gameIndex].player1Bet);
-                copyGameStatusStructure(status, mensajePierde, &games[gameIndex].player1Deck, NULL);
-                
-            }else{ // Jugador 2
-
-                games[gameIndex].player2Stack-= games[gameIndex].player2Bet;
-                sprintf(mensajePierde, "\nHas perdido la mano, pierdes %d monedas\n", games[gameIndex].player2Bet);
-                copyGameStatusStructure(status, mensajePierde, &games[gameIndex].player2Deck, NULL);
-
-            }
-   
-        }
-
-        //comprobamos quien ha ganado la partida
-        ganador= compruebaFin(&games[gameIndex].player1Stack, games[gameIndex].player2Stack);
-
-        if(ganador!=-1){
-            result=TRUE;
-            games[gameIndex].endOfGame=TRUE;
-            if (numJugador==ganador){ // Ganador de la partida
-                if(numJugador=player1){ // Jugador 1
-
-                    games[gameIndex].player1Stack+= games[gameIndex].player2Bet;
-                    sprintf(mensajeGana, "\nHas ganado la partida");
-                    copyGameStatusStructure(status, mensajeGana, &games[gameIndex].player1Deck, GAME_WIN);
-
-                }else{ // Jugador 2
-                    
-                    games[gameIndex].player2Stack+= games[gameIndex].player1Bet;
-                    sprintf(mensajeGana, "\nHas ganado la partida\n");
-                    copyGameStatusStructure(status, mensajeGana, &games[gameIndex].player2Deck, GAME_WIN);
-
-                }
-            }else{ // Perdedor de la partida 
-                if (numJugador==player1){ // Jugador 1
-
-                    games[gameIndex].player1Stack-= games[gameIndex].player1Bet;
-                    sprintf(mensajePierde, "\nHas perdido la partida\n", games[gameIndex].player1Bet);
-                    copyGameStatusStructure(status, mensajePierde, &games[gameIndex].player1Deck, GAME_LOSE);
-                    
-                }else{ // Jugador 2
-
-                    games[gameIndex].player2Stack-= games[gameIndex].player2Bet;
-                    sprintf(mensajePierde, "\nHas perdido la partida\n", games[gameIndex].player2Bet);
-                    copyGameStatusStructure(status, mensajePierde, &games[gameIndex].player2Deck, GAME_LOSE);
-
-                }
-            }
-        }else{
-            if(games[gameIndex].currentPlayer==numJugador){ // Turno del jugador
-                if (numJugador==player1){ // Jugador 1
-                    sprintf(mensaje, "\nEs tu turno, tienes %d puntos.\n", calculatePoints(&games[gameIndex].player1Deck));
-                    copyGameStatusStructure(status, mensaje, &games[gameIndex].player1Deck, TURN_PLAY);
-                }else{ // Jugador 2
-                    sprintf(mensaje, "\nEs tu turno, tienes %d puntos.\n", calculatePoints(&games[gameIndex].player2Deck));
-                    copyGameStatusStructure(status, mensaje, &games[gameIndex].player2Deck, TURN_PLAY);
-                }
-            }else{ // Turno del rival
-                if (numJugador==player1){ // Jugador 1
-                    sprintf(mensaje, "\nEspera tu turno\n");
-                    copyGameStatusStructure(status, mensaje, &games[gameIndex].player2Deck, TURN_WAIT); //Le paso el deck del current player para que lo imprima
-                }else{ // Jugador 2
-                    sprintf(mensaje, "\nEspera tu turno\n");
-                    copyGameStatusStructure(status, mensaje, &games[gameIndex].player1Deck, TURN_WAIT); //Le paso el deck del current player para que lo imprima
-                }
-            }
+// Busca en que partida está el jugador o si esta en alguna.
+int locateGameForPlayer (xsd__string name){
+    // For every game
+    int i = -1;
+    int found = FALSE;
+    while(i < MAX_GAMES && !found){
+        // Tries to locate player in game i
+        i++;
+        if (strcmp (games[i].player1Name, name) == 0  || (games[i].player2Name, name) == 0){
+            found = TRUE;
         }
     }
+    // Return valid game
+    if(found){
+        return i;
+    }else{
+        //The player isn't in any current game
+        return ERROR_PLAYER_NOT_FOUND;
+    }
+    
+}
+
+int jugador1o2(int numGame, xsd__string nombre){
+    if (strcmp (games[numGame].player1Name, nombre) == 0)
+        return 0;
+    else if(strcmp (games[numGame].player2Name, nombre) == 0)
+        return 1;
+    return -1;
+}
+
+
+// Service to get current game status
+int getStatus (struct soap *soap, blackJackns__tMessage nombre , blackJackns__tBlock * status){
+
+    int numeroPartida, isWinner;
+    int ganadorMano;
+    int puntosJug;
+    char mensaje [STRING_LENGTH];
+        // Set \0 at the end of the string
+        nombre.msg[nombre.__size] = 0;
+        isWinner = FALSE;
+
+        // Allocate memory for the status structure
+        allocClearBlock(soap,status);
+
+        if (DEBUG_SERVER)
+            printf ("[getStatus] request from -> [%s]\n", nombre.msg);
+        // Locate the game
+        numeroPartida = locateGameForPlayer(nombre.msg);
+        // Player not found...
+        if (numeroPartida == ERROR_PLAYER_NOT_FOUND){
+            // Allocate memory and copy message into status struct
+            copyGameStatusStructure (status, "Player is not currently active in the system! Please, register again...\n", NULL, ERROR_PLAYER_NOT_FOUND);
+            printf ("[getStatus] - Player %s not found!\n", nombre.msg);
+        }
+
+        // Player is already registered...
+        else{
+            // Locates player in game
+            //pthread_mutex_lock(&games[numeroPartida].players_mutex);//<--------------------------------------
+            int jug = jugador1o2(numeroPartida ,nombre.msg);
+            //pthread_mutex_unlock(&games[numeroPartida].players_mutex);//<--------------------------------------
+            // If game has finish
+            if(games[numeroPartida].endOfGame){
+                //pthread_mutex_lock(&games[numeroPartida].turn_mutex);//<--------------------------------------
+                // Checks if a player won
+                ganadorMano=compruebaGanadorMano(&games[numeroPartida].player1Deck, &games[numeroPartida].player2Deck);
+                if(ganadorMano != -1){
+                    if(ganadorMano==jug){
+                        sprintf(mensaje, "You win!\n");
+                        copyGameStatusStructure(status, mensaje, &games[numeroPartida].gameDeck, GAME_WIN);
+                    }else{
+                        sprintf(mensaje, "You Lose!\n");
+                        copyGameStatusStructure(status, mensaje, &games[numeroPartida].gameDeck, GAME_LOSE);
+                    }
+                }else {
+                    sprintf(mensaje, "Draw!\n");
+                    copyGameStatusStructure(status, mensaje, &games[numeroPartida].gameDeck, GAME_WIN);
+                }
+                
+            //pthread_mutex_unlock(&games[gameIndex].turn_mutex);//<--------------------------------------
+            }
+            // If game hasn't finsish
+            else{
+                // If is not player turn waits until unlocked
+                if ((strcmp(nombre.msg, games[numeroPartida].player1Name) == 0 && games[numeroPartida].currentPlayer != player1) || 
+                    (strcmp(nombre.msg, games[numeroPartida].player2Name) == 0 && games[numeroPartida].currentPlayer != player2)){
+                        // Waits for condition
+                        //pthread_cond_wait(&games[numeroPartida].turn_cond, &games[numeroPartida].turn_mutex);//<--------------------------------------
+                        // Unlocks
+                        //pthread_mutex_unlock(&games[numeroPartida].turn_mutex);//<--------------------------------------
+                    }
+                    
+                // If is player turn
+                if(games[numeroPartida].currentPlayer == jug){
+                    // Locks board and game status
+                    //pthread_mutex_lock(&games[numeroPartida].turn_mutex);//<--------------------------------------
+                    if(jug=player1){
+                        puntosJug=calculatePoints(&games[numeroPartida].player1Deck);
+                        sprintf(mensaje, "\nEs tu turno, tienes %d puntos.", puntosJug);
+                        copyGameStatusStructure(status, mensaje, &games[numeroPartida].gameDeck, TURN_PLAY);
+                    }else{
+                        puntosJug=calculatePoints(&games[numeroPartida].player2Deck);
+                        sprintf(mensaje, "\nEs tu turno, tienes %d puntos.", puntosJug);
+                        copyGameStatusStructure(status, mensaje, &games[numeroPartida].gameDeck, TURN_PLAY);
+                    }
+                }
+                // If isn't player turn
+                else{
+                    sprintf(mensaje, "Your rival is thinking...\n");
+                    copyGameStatusStructure(status, mensaje, &games[numeroPartida].gameDeck, TURN_WAIT);
+                }
+            }
+        }
     return SOAP_OK;
 }
 
-int blackJackns__playermove(struct soap *soap, blackJackns__tMessage playerName, unsigned int playerMove, blackJackns__tBlock* status){
-    int gameIndex = buscaJugador(playerName.msg);
-    int numJugador=jugador1o2(gameIndex, playerName.msg);
+///////////////////////////////////////////////////////////////////////////
 
-    switch (playerMove)
-    {
-    case PLAYER_HIT_CARD:
-    if(numJugador==player1){
-        recibeCartas(&games[gameIndex].player1Deck, &games[gameIndex].gameDeck, 1);
-        if(calculatePoints(&games[gameIndex].player1Deck)>GOAL_GAME){ // Se ha pasado
-            sprintf(status->msgStruct.msg, "\nTienes %d puntos, te has pasado.\n", calculatePoints(&games[gameIndex].player1Deck));
-            copyGameStatusStructure(status, status->msgStruct.msg, &games[gameIndex].player1Deck, TURN_WAIT);
-            games[gameIndex].currentPlayer=player2;
-        }else{ //puede seguir jugando
-            sprintf(status->msgStruct.msg, "Puedes seguir jugando, tienes %d puntos.", calculatePoints(&games[gameIndex].player1Deck));
-            copyGameStatusStructure(status, status->msgStruct.msg, &games[gameIndex].player1Deck, TURN_PLAY);
-        }
-    }else{
-        recibeCartas(&games[gameIndex].player2Deck, &games[gameIndex].gameDeck, 1);
-        if(calculatePoints(&games[gameIndex].player2Deck)>GOAL_GAME){ // Se ha pasado
-            sprintf(status->msgStruct.msg, "\nTienes %d puntos, te has pasado.\n", calculatePoints(&games[gameIndex].player2Deck));
-            copyGameStatusStructure(status, status->msgStruct.msg, &games[gameIndex].player2Deck, TURN_WAIT);
-            games[gameIndex].currentPlayer=player1;
-        }else{ //puede seguir jugando
-            sprintf(status->msgStruct.msg, "Puedes seguir jugando, tienes %d puntos.", calculatePoints(&games[gameIndex].player2Deck));
-            copyGameStatusStructure(status, status->msgStruct.msg, &games[gameIndex].player2Deck, TURN_PLAY);
-        }
-    }
-        break;
-    case PLAYER_STAND:
-        if(numJugador==player1){
-            sprintf(status->msgStruct.msg, "\nTe plantas con %d puntos.\n", calculatePoints(&games[gameIndex].player1Deck));
-            copyGameStatusStructure(status, status->msgStruct.msg, &games[gameIndex].player1Deck, TURN_WAIT);
-            games[gameIndex].currentPlayer=player2;
-        }else{
-            sprintf(status->msgStruct.msg, "\nTe plantas con %d puntos.\n", calculatePoints(&games[gameIndex].player2Deck));
-            copyGameStatusStructure(status, status->msgStruct.msg, &games[gameIndex].player2Deck, TURN_WAIT);
-            games[gameIndex].currentPlayer=player1;
-        }
-        break;
-    default:
-        break;
-    }
-}
 void *processRequest(void *soap){
 
 	pthread_detach(pthread_self());
@@ -462,6 +370,7 @@ int main(int argc, char **argv){
         soap.max_keep_alive = 100; // max keep-alive sequence
 
         initServerStructures(&soap);
+
         // Get listening port
         port = atoi(argv[1]);
 
