@@ -101,20 +101,14 @@ int main(int argc, char **argv){
 			}
 		}
 		while(!endOfGame){
-			soap_call_blackJackns__getStatus(&soap, serverURL, "", playerName, &gameStatus, &resCode);
+			soap_call_blackJackns__getStatus(&soap, serverURL, "", playerName, &gameStatus);
 			printf("Game status: %s\n", gameStatus.msgStruct.msg);
-			printf("Mi mazo: \n");
-			printFancyDeck(&gameStatus.deck.cards);
-			if (resCode==TRUE){ // partida finalizada
-				endOfGame=TRUE;
-			}else{
-				while (gameStatus.code==TURN_PLAY){
-					playerMove=readOption();
-					soap_call_blackJackns__playermove(&soap, serverURL, "", playerName, playerMove, &gameStatus);
-					printf(gameStatus.msgStruct.msg);
-					printf("Mi mazo: \n");
-					printFancyDeck(&gameStatus.deck.cards);
-				}
+			while (gameStatus.code==TURN_PLAY){
+				playerMove=readOption();
+				soap_call_blackJackns__playermove(&soap, serverURL, "", playerName, playerMove, &gameStatus);
+				printf(gameStatus.msgStruct.msg);
+				printf("Mi mazo: \n");
+				printFancyDeck(&gameStatus.deck.cards);
 			}
 		}
 
