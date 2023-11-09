@@ -2,8 +2,6 @@
 
 /** Shared array that contains all the games. */
 tGame games[MAX_GAMES];
-pthread_cond_t condTurno;
-pthread_mutex_t cerrojoTurno;
 
 void initGame (tGame *game){
 
@@ -228,38 +226,34 @@ int compruebaFin(unsigned int *stackA, unsigned int *stackB){
                 return -1;
 }
 
-int blackJackns__getStatus(struct soap *soap, blackJackns__tMessage playerName, blackJackns__tBlock *status){
+int blackJackns__getStatus(struct soap *soap, int gameId, blackJackns__tMessage playerName, blackJackns__tBlock *status){
     int ganador;
-    int gameIndex;
     int numJugador;
 
-    gameIndex = buscaJugador(playerName.msg);
-    
-    if(gameIndex==ERROR_PLAYER_NOT_FOUND){
-        copyGameStatusStructure(status, "Jugador no encontrado\n", NULL, ERROR_PLAYER_NOT_FOUND);
-    }else{ //fin del juego
-        numJugador=jugador1o2(gameIndex,playerName.msg);
-        ganador= compruebaFin(&games[gameIndex].player1Stack, &games[gameIndex].player2Stack);
-        if (ganador!=-1){
-            games[gameIndex].endOfGame=TRUE;
-            if (ganador==numJugador){
-                copyGameStatusStructure(status, "Has ganado la partida", &games[gameIndex].player1Deck, GAME_WIN);
-            }else{
-                copyGameStatusStructure(status, "Has perdido la partida", &games[gameIndex].player2Deck, GAME_LOSE);
-            }
-        }else{//juego no ha acabado
-            if((strcmp(playerName.msg, games[gameIndex].player1Name)==0 && games[gameIndex].currentPlayer!=player1) ||
-            (strcmp(playerName.msg, games[gameIndex].player2Name)==0 && games[gameIndex].currentPlayer!=player2)){ //no es mi turno
-                pthread_cond_wait(&condTurno, &cerrojoTurno);
-                pthread_mutex_unlock(&cerrojoTurno);
-            }
 
-            if(games[gameIndex].currentPlayer==numJugador){ //turno del jugador
-                if (numJugador==player1){
-                    copyGameStatusStructure(status, "Es tu turno, tienes %d puntos.\n", &games[gameIndex].player1Deck, TURN_PLAY);
-                }else{
-                    copyGameStatusStructure(status, "Es tu turno, tienes %d puntos.\n", &games[gameIndex].player2Deck, TURN_PLAY);
-                }
+    numJugador=jugador1o2(gameId,playerName.msg);
+    ganador= compruebaFin(&games[gameId].player1Stack, &games[gameId].player2Stack);
+    if (ganador!=-1){
+        games[gameId].endOfGame=TRUE;
+        if (ganador==numJugador){
+            copyGameStatusStructure(status, "Has ganado la partida", &games[gameId].player1Deck, GAME_WIN);
+        }else{
+            copyGameStatusStructure(status, "Has perdido la partida", &games[gameId].player2Deck, GAME_LOSE);
+        }
+    }else{//juego no ha acabado
+        if((strcmp(playerName.msg, games[gameId].player1Name)==0 && games[gameId].currentPlayer!=player1) ||
+        (strcmp(playerName.msg, games[gameId].player2Name)==0 && games[gameId].currentPlayer!=player2)){ //no es mi turno
+            pthread_cond_wait(&games[gameId].condTurno, &games[gameId].cerrojoTurno);
+            pthread_mutex_unlock(&games[gameId].cerrojoTurno);
+        }
+
+        if(games[gameId].currentPlayer==numJugador){ //turno del jugador
+            pthread_mutex_lock(&games[gameId].cerrojoTurno);
+            if (numJugador==player1){
+                copyGameStatusStructure(status, "Es tu turno, tienes %d puntos.\n", &games[gameId].player1Deck, TURN_PLAY);
+                printStatus(status, 1);
+            }else{
+                copyGameStatusStructure(status, "Es tu turno, tienes %d puntos.\n", &games[gameId].player2Deck, TURN_PLAY);
             }
         }
     }

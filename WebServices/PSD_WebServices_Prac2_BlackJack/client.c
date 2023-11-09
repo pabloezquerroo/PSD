@@ -75,11 +75,16 @@ int main(int argc, char **argv){
 			exit(0);
 		}
 
+		// Allocate memory for game status and init
+		gameStatus.msgStruct.msg = (xsd__string) malloc (STRING_LENGTH);
+		memset(gameStatus.msgStruct.msg, 0, STRING_LENGTH);
+		gameStatus.msgStruct.__size = STRING_LENGTH;
+
 		endOfGame=FALSE;
+		resCode=-1;
 
 		// Init and read the message
 
-		resCode=-1;
 		while(resCode < 0){ // Mientras no registrado
 			printf("Enter your name: ");
 			memset(gameStatus.msgStruct.msg, 0, STRING_LENGTH);
@@ -101,8 +106,9 @@ int main(int argc, char **argv){
 			}
 		}
 		while(!endOfGame){
-			soap_call_blackJackns__getStatus(&soap, serverURL, "", playerName, &gameStatus);
+			soap_call_blackJackns__getStatus(&soap, serverURL, "", gameId, playerName, &gameStatus);
 			printf("Game status: %s\n", gameStatus.msgStruct.msg);
+			printStatus(&gameStatus, 1);
 			while (gameStatus.code==TURN_PLAY){
 				playerMove=readOption();
 				soap_call_blackJackns__playermove(&soap, serverURL, "", playerName, playerMove, &gameStatus);
