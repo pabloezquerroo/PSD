@@ -75,11 +75,6 @@ int main(int argc, char **argv){
 			exit(0);
 		}
 
-		// Allocate memory for game status and init
-		gameStatus.msgStruct.msg = (xsd__string) malloc (STRING_LENGTH);
-		memset(gameStatus.msgStruct.msg, 0, STRING_LENGTH);
-		gameStatus.msgStruct.__size = STRING_LENGTH;
-
 		endOfGame=FALSE;
 		resCode=-1;
 
@@ -87,9 +82,9 @@ int main(int argc, char **argv){
 
 		while(resCode < 0){ // Mientras no registrado
 			printf("Enter your name: ");
-			memset(gameStatus.msgStruct.msg, 0, STRING_LENGTH);
 			fgets(playerName.msg, STRING_LENGTH-1, stdin);
-			playerName.__size= strlen(playerName.msg)-1;
+			playerName.msg[strcspn(playerName.msg, "\n")] = 0;
+			playerName.__size= strlen(playerName.msg);
 			soap_call_blackJackns__register(&soap, serverURL, "", playerName, &resCode);
 			switch (resCode)
 			{

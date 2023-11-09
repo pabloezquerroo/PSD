@@ -24,8 +24,6 @@ void initGame (tGame *game){
 	game->endOfGame = FALSE;
 	game->status = gameEmpty;
 
-    //add
-    game->currentPlayer = player1;
 }
 
 void initServerStructures (struct soap *soap){
@@ -87,9 +85,9 @@ unsigned int getRandomCard (blackJackns__tDeck* deck){
 	return card;
 }
 
-void recibeCartas(blackJackns__tDeck *playerDeck, blackJackns__tDeck *gameDeck, int numCartas){
+void recibeCartas(blackJackns__tDeck *playerDeck, int gameId, int numCartas){
         for(int i=0; i<numCartas; i++){
-                playerDeck->cards[playerDeck->__size]=getRandomCard(gameDeck);
+                playerDeck->cards[playerDeck->__size]=getRandomCard(&games[gameId].gameDeck);
                 (playerDeck->__size)++;
         }
 }
@@ -113,6 +111,33 @@ void copyGameStatusStructure (blackJackns__tBlock* status, char* message, blackJ
 	status->code = newCode;	
 }
 
+/*
+void copyGameStatusStructure (blackJackns__tBlock* status, char* message, blackJackns__tDeck *newDeck, int newCode){
+
+	// Copy the message
+    status->msgStruct.msg = malloc(sizeof(message));
+    status->msgStruct.__size = strlen(message);
+	memset((status->msgStruct).msg, 0, STRING_LENGTH);
+	strcpy ((status->msgStruct).msg, message);
+	(status->msgStruct).__size = strlen ((status->msgStruct).msg);
+
+	// Copy the deck, only if it is not NULL
+	if (newDeck->__size > 0){
+        status->deck.cards = malloc(sizeof(newDeck->cards));
+		memcpy ((status->deck).cards, newDeck->cards, DECK_SIZE*sizeof (unsigned int));	
+        printf("llega\n");
+    }else{
+		(status->deck).cards = NULL;
+    }
+
+	(status->deck).__size = newDeck->__size;
+
+	// Set the new code
+	status->code = newCode;	
+}
+*/
+
+
 unsigned int calculatePoints (blackJackns__tDeck *deck){
 
 	unsigned int points = 0;
@@ -124,7 +149,6 @@ unsigned int calculatePoints (blackJackns__tDeck *deck){
 			else
 				points += FIGURE_VALUE;
 		}
-
 	return points;
 }
 
@@ -134,7 +158,7 @@ int buscaJugador(xsd__string playerName){
         int gameIndex=ERROR_PLAYER_NOT_FOUND;
         while(i < MAX_GAMES && !jugExistente){
             // Tries to locate player in game i
-            if (strcmp (games[i].player1Name, playerName) == 0  || (games[i].player2Name, playerName) == 0){
+            if ((strcmp(games[i].player1Name, playerName)==0)  || (strcmp(games[i].player2Name, playerName)==0)){
                     jugExistente = TRUE;
                     gameIndex=i;
             }
@@ -143,7 +167,7 @@ int buscaJugador(xsd__string playerName){
         return gameIndex;
 }
 
-buscaHueco(){
+int buscaHueco(){
     int i = 0;
     int hayHueco =FALSE;
 	int gameIndex = ERROR_SERVER_FULL;
@@ -171,20 +195,22 @@ int blackJackns__register (struct soap *soap, blackJackns__tMessage playerName, 
     
     if(gameIndex == ERROR_SERVER_FULL){
         printf("Servidor lleno, no se puede registrar\n");
-        result=ERROR_SERVER_FULL;
+        *result= ERROR_SERVER_FULL;
     }
     else{
         if(buscaJugador(playerName.msg)==ERROR_PLAYER_NOT_FOUND){ //jugador no existe, se puede registrar       
             if(games[gameIndex].status==gameEmpty){
                 strcpy(games[gameIndex].player1Name, playerName.msg);
+                games[gameIndex].status=gameWaitingPlayer;
+                
             }else if(games[gameIndex].status==gameWaitingPlayer){
                 strcpy(games[gameIndex].player2Name, playerName.msg);
                 games[gameIndex].status=gameReady;
             }
-            result=gameIndex;
+            *result=gameIndex;
         }else{ //jugador ya existente
             printf("Jugador existente, no se puede registrar\n");
-            result=ERROR_NAME_REPEATED;
+            *result=ERROR_NAME_REPEATED;
         }
     }
     
@@ -229,8 +255,9 @@ int compruebaFin(unsigned int *stackA, unsigned int *stackB){
 int blackJackns__getStatus(struct soap *soap, int gameId, blackJackns__tMessage playerName, blackJackns__tBlock *status){
     int ganador;
     int numJugador;
+    char *mensaje;
 
-
+    playerName.msg[playerName.__size] = 0;
     numJugador=jugador1o2(gameId,playerName.msg);
     ganador= compruebaFin(&games[gameId].player1Stack, &games[gameId].player2Stack);
     if (ganador!=-1){
@@ -250,10 +277,15 @@ int blackJackns__getStatus(struct soap *soap, int gameId, blackJackns__tMessage 
         if(games[gameId].currentPlayer==numJugador){ //turno del jugador
             pthread_mutex_lock(&games[gameId].cerrojoTurno);
             if (numJugador==player1){
-                copyGameStatusStructure(status, "Es tu turno, tienes %d puntos.\n", &games[gameId].player1Deck, TURN_PLAY);
-                printStatus(status, 1);
+                allocDeck(soap, &games[gameId].player1Deck);
+                recibeCartas(&games[gameId].player1Deck, gameId, 2);
+                mensaje=malloc(sizeof(char)*STRING_LENGTH);
+                sprintf(mensaje, "Es tu turno, tienes %d puntos.\n", calculatePoints(&games[gameId].player1Deck));
+                copyGameStatusStructure(&status, &mensaje, &games[gameId].player1Deck, TURN_PLAY); //falla esto(reserva memoria)
             }else{
-                copyGameStatusStructure(status, "Es tu turno, tienes %d puntos.\n", &games[gameId].player2Deck, TURN_PLAY);
+                recibeCartas(&games[gameId].player2Deck, gameId, 2);
+                sprintf(mensaje, "Es tu turno, tienes %d puntos.\n", calculatePoints(&games[gameId].player2Deck));
+                copyGameStatusStructure(status, mensaje, &games[gameId].player2Deck, TURN_PLAY);
             }
         }
     }
@@ -392,7 +424,7 @@ int blackJackns__playermove(struct soap *soap, blackJackns__tMessage playerName,
     {
     case PLAYER_HIT_CARD:
     if(numJugador==player1){
-        recibeCartas(&games[gameIndex].player1Deck, &games[gameIndex].gameDeck, 1);
+        recibeCartas(&games[gameIndex].player1Deck, gameIndex, 1);
         if(calculatePoints(&games[gameIndex].player1Deck)>GOAL_GAME){ // Se ha pasado
             sprintf(status->msgStruct.msg, "\nTienes %d puntos, te has pasado.\n", calculatePoints(&games[gameIndex].player1Deck));
             copyGameStatusStructure(status, status->msgStruct.msg, &games[gameIndex].player1Deck, TURN_WAIT);
@@ -402,7 +434,7 @@ int blackJackns__playermove(struct soap *soap, blackJackns__tMessage playerName,
             copyGameStatusStructure(status, status->msgStruct.msg, &games[gameIndex].player1Deck, TURN_PLAY);
         }
     }else{
-        recibeCartas(&games[gameIndex].player2Deck, &games[gameIndex].gameDeck, 1);
+        recibeCartas(&games[gameIndex].player2Deck, gameIndex, 1);
         if(calculatePoints(&games[gameIndex].player2Deck)>GOAL_GAME){ // Se ha pasado
             sprintf(status->msgStruct.msg, "\nTienes %d puntos, te has pasado.\n", calculatePoints(&games[gameIndex].player2Deck));
             copyGameStatusStructure(status, status->msgStruct.msg, &games[gameIndex].player2Deck, TURN_WAIT);
