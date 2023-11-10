@@ -100,18 +100,22 @@ int main(int argc, char **argv){
 				break;
 			}
 		}
+
 		while(!endOfGame){
+			printf("inicia\n");
 			soap_call_blackJackns__getStatus(&soap, serverURL, "", gameId, playerName, &gameStatus);
-			printf("Game status: %s\n", gameStatus.msgStruct.msg);
-			printStatus(&gameStatus, 1);
+			printStatus(&gameStatus, DEBUG_CLIENT);
+			if (gameStatus.code==GAME_WIN || gameStatus.code==GAME_LOSE){
+				endOfGame=TRUE;
+			}
 			while (gameStatus.code==TURN_PLAY){
 				playerMove=readOption();
-				soap_call_blackJackns__playermove(&soap, serverURL, "", playerName, playerMove, &gameStatus);
-				printf(gameStatus.msgStruct.msg);
-				printf("Mi mazo: \n");
-				printFancyDeck(&gameStatus.deck.cards);
+				soap_call_blackJackns__playermove(&soap, serverURL, "", gameId, playerName, playerMove, &gameStatus);
+				printStatus(&gameStatus, DEBUG_CLIENT);
 			}
+			printf("acaba\n");
 		}
+
 
   	return 0;
 }

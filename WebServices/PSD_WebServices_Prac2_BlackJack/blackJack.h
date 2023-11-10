@@ -74,5 +74,5 @@ typedef struct tBlock{
 
 int blackJackns__register  	(blackJackns__tMessage playerName, int* result);
 int blackJackns__getStatus(int gameId, blackJackns__tMessage playerName, blackJackns__tBlock* status);
-int blackJackns__playermove(blackJackns__tMessage playerName, unsigned int playerMove, blackJackns__tBlock* status);
+int blackJackns__playermove(int gameId, blackJackns__tMessage playerName, unsigned int playerMove, blackJackns__tBlock* status);
 

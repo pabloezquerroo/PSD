@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "*.vhd": "vhdl",
+        "system_error": "c"
+    }
+}
