@@ -11,7 +11,7 @@
 #define MAX_GAMES 5
 
 /** Initial stack for each player */
-#define INITIAL_STACK 1
+#define INITIAL_STACK 3
 
 /** Default bet */
 #define DEFAULT_BET 1
@@ -56,6 +56,7 @@ typedef struct game{
 
 	pthread_mutex_t cerrojoTurno;
 	pthread_cond_t condTurno;
+	pthread_mutex_t cerrojoPlayers;
 
 }tGame;
 
