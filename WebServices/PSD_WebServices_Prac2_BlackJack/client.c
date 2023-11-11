@@ -104,7 +104,6 @@ int main(int argc, char **argv){
 
 		while(!endOfGame){
 			soap_call_blackJackns__getStatus(&soap, serverURL, "", gameId, playerName, &gameStatus);
-			//system("clear");
 			printStatus(&gameStatus, DEBUG_CLIENT);
 			if (gameStatus.code==GAME_WIN || gameStatus.code==GAME_LOSE){
 				endOfGame=TRUE;
@@ -112,6 +111,7 @@ int main(int argc, char **argv){
 
 			while (gameStatus.code==TURN_PLAY){
 				playerMove=readOption();
+				system("clear");
 				soap_call_blackJackns__playermove(&soap, serverURL, "", gameId, playerName, playerMove, &gameStatus);
 				printStatus(&gameStatus, DEBUG_CLIENT);
 			}

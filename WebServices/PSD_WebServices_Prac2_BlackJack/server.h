@@ -5,7 +5,7 @@
 
 
 /** Flag to enable debugging */
-#define DEBUG_SERVER TRUE
+#define DEBUG_SERVER FALSE
 
 /** Maximum number of active games in the server */
 #define MAX_GAMES 5

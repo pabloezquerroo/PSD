@@ -32,6 +32,31 @@ void initGame (tGame *game){
 
 }
 
+void resetPlayer (tGame *game, tPlayer player){
+
+	// Init players' name
+    if(player1==player){
+        memset (game->player1Name, 0, STRING_LENGTH);	
+        clearDeck (&(game->player1Deck));	
+
+    }else{
+        memset (game->player2Name, 0, STRING_LENGTH);	
+        clearDeck (&(game->player2Deck));	
+    }
+	
+    if(game->player1Deck.__size==0 && game->player2Deck.__size==0){
+        initDeck (&(game->gameDeck));
+        game->status = gameEmpty;
+        game->currentPlayer=player1;
+        game->endOfGame=FALSE;
+        game->player1Bet = DEFAULT_BET;
+        game->player1Stack = INITIAL_STACK;
+        game->player2Bet = DEFAULT_BET;
+        game->player2Stack = INITIAL_STACK;
+    }
+
+}
+
 void initServerStructures (struct soap *soap){
 
 	if (DEBUG_SERVER)
@@ -246,7 +271,10 @@ int blackJackns__getStatus(struct soap *soap, int gameId, blackJackns__tMessage 
     int ganadorMano;
     int numJugador;
     char *mensaje;
-    
+    printf("getStatus\n");
+    printf("playerName: %s\n", playerName.msg);
+    printf("currentPlayer: %d\n", games[gameId].currentPlayer);
+    printf("endOfGame: %d\n", games[gameId].endOfGame);
     allocClearBlock(soap, status);
     mensaje=malloc(sizeof(char)*STRING_LENGTH);
 
@@ -254,56 +282,64 @@ int blackJackns__getStatus(struct soap *soap, int gameId, blackJackns__tMessage 
     numJugador=jugador1o2(gameId,playerName.msg);
 
     if(games[gameId].status!=gameReady){
+        printf("status= %d\n", games[gameId].status);
         pthread_cond_wait(&games[gameId].condTurno, &games[gameId].cerrojoTurno);
     }
 
     if((strcmp(playerName.msg, games[gameId].player1Name)==0 && games[gameId].currentPlayer!=player1) ||
     (strcmp(playerName.msg, games[gameId].player2Name)==0 && games[gameId].currentPlayer!=player2)){ //no es mi turno
-        printf("\nwait2, playername: %s\n", playerName.msg);
+        printf("wait\n");
         pthread_cond_wait(&games[gameId].condTurno, &games[gameId].cerrojoTurno);
-        printf("\nsale wait2, playername: %s\n", playerName.msg);
-
+        pthread_mutex_unlock(&games[gameId].cerrojoTurno);
+        printf("postwait\n");
     }
     
+    pthread_mutex_lock(&games[gameId].cerrojoTurno);
+    printf("lock\n");
     if (games[gameId].endOfGame){
-        pthread_cond_broadcast(&games[gameId].condTurno);
-
         ganadorMano=compruebaGanadorMano(&games[gameId].player1Deck, &games[gameId].player2Deck);
         if(ganadorMano!=-1){
             if(numJugador==player1){
                 if(ganadorMano==player1){
                     games[gameId].player1Stack+=games[gameId].player2Bet;
 
-                    sprintf(mensaje, "\nHas ganado la mano, ganas %d monedas.\n", games[gameId].player2Bet);
+                    sprintf(mensaje, "\nHas ganado la mano, tienes %d monedas.\n", games[gameId].player1Stack);
                     copyGameStatusStructure(status, mensaje, &games[gameId].player1Deck, TURN_WAIT); 
                 }
                 else{
                     games[gameId].player1Stack-=games[gameId].player1Bet;
 
-                    sprintf(mensaje, "\nHas perdido la mano, pierdes %d monedas.\n", games[gameId].player1Bet);
+                    sprintf(mensaje, "\nHas perdido la mano, tienes %d monedas.\n", games[gameId].player1Stack);
                     copyGameStatusStructure(status, mensaje, &games[gameId].player2Deck, TURN_WAIT); 
                 }
             }else{
                 if(ganadorMano==player1){
                     games[gameId].player2Stack-=games[gameId].player2Bet;
-                    sprintf(mensaje, "\nHas perdido la mano, pierdes %d monedas.\n", games[gameId].player2Bet);
+                    sprintf(mensaje, "\nHas perdido la mano, tienes %d monedas.\n", games[gameId].player2Stack);
                     copyGameStatusStructure(status, mensaje, &games[gameId].player1Deck, TURN_WAIT); 
                 }
                 else{
                     games[gameId].player2Stack+=games[gameId].player1Bet;
 
-                    sprintf(mensaje, "\nHas ganado la mano, ganas %d monedas.\n", games[gameId].player1Bet);
+                    sprintf(mensaje, "\nHas ganado la mano, tienes %d monedas.\n", games[gameId].player2Stack);
                     copyGameStatusStructure(status, mensaje, &games[gameId].player2Deck, TURN_WAIT); 
                 }
             }
 
         }else{
-            //empate
+             if(numJugador==player1){
+                sprintf(mensaje, "\nEmpate, tienes %d monedas.\n", games[gameId].player1Stack);
+                copyGameStatusStructure(status, mensaje, &games[gameId].player1Deck, TURN_WAIT);
+            }else{
+                sprintf(mensaje, "\nEmpate, tienes %d monedas.\n", games[gameId].player2Stack);
+                copyGameStatusStructure(status, mensaje, &games[gameId].player2Deck, TURN_WAIT);
+            }
         }
-        games[gameId].currentPlayer=calculateNextPlayer(games[gameId].currentPlayer);
         ganador= compruebaFin(&games[gameId].player1Stack, &games[gameId].player2Stack);
-        printf("ganador: %d\n", ganador);
         if(ganador!=-1){
+            if(numJugador==games[gameId].currentPlayer)
+                games[gameId].currentPlayer=calculateNextPlayer(games[gameId].currentPlayer);
+
             if(numJugador==player1){
                 if(ganador==player1){
                     copyGameStatusStructure(status, "Has ganado la partida", &games[gameId].player1Deck, GAME_WIN);
@@ -311,6 +347,7 @@ int blackJackns__getStatus(struct soap *soap, int gameId, blackJackns__tMessage 
                 }else{
                     copyGameStatusStructure(status, "Has perdido la partida", &games[gameId].player1Deck, GAME_LOSE);
                 }
+                resetPlayer(&games[gameId], player1);
             }else{
                 if(ganador==player2){
                     copyGameStatusStructure(status, "Has ganado la partida", &games[gameId].player2Deck, GAME_WIN);
@@ -318,23 +355,25 @@ int blackJackns__getStatus(struct soap *soap, int gameId, blackJackns__tMessage 
                 }else{
                     copyGameStatusStructure(status, "Has perdido la partida", &games[gameId].player2Deck, GAME_LOSE);
                 }
+                resetPlayer(&games[gameId], player2);
             }
         }
-        games[gameId].endOfGame=FALSE;
-        //initGame(&games[gameId]);
-    }else{
-        pthread_mutex_lock(&games[gameId].cerrojoTurno);
 
+        if(numJugador==games[gameId].currentPlayer){
+            games[gameId].endOfGame=FALSE;
+            clearDeck(&games[gameId].player1Deck);
+            clearDeck(&games[gameId].player2Deck);
+        } 
+        pthread_mutex_unlock(&games[gameId].cerrojoTurno);
+    }else{
         if(games[gameId].currentPlayer==numJugador){ //turno del jugador
 
             if (numJugador==player1){
-                clearDeck(&games[gameId].player1Deck);
                 recibeCartas(&games[gameId].player1Deck, gameId, 2);
 
                 sprintf(mensaje, "Es tu turno, tienes %d puntos.\n", calculatePoints(&games[gameId].player1Deck));
                 copyGameStatusStructure(status, mensaje, &games[gameId].player1Deck, TURN_PLAY); 
             }else{
-                clearDeck(&games[gameId].player2Deck);
                 recibeCartas(&games[gameId].player2Deck, gameId, 2);
 
                 sprintf(mensaje, "Es tu turno, tienes %d puntos.\n", calculatePoints(&games[gameId].player2Deck));
@@ -368,9 +407,11 @@ int blackJackns__playermove(struct soap *soap, int gameId, blackJackns__tMessage
         if(calculatePoints(&games[gameId].player1Deck)>GOAL_GAME){ // Se ha pasado
             sprintf(mensaje, "\nTienes %d puntos, te has pasado.\n", calculatePoints(&games[gameId].player1Deck));
             copyGameStatusStructure(status, mensaje, &games[gameId].player1Deck, TURN_WAIT);
-            games[gameId].currentPlayer=calculateNextPlayer(games[gameId].currentPlayer);
 
             games[gameId].endOfGame=ambosHanJugado(gameId);
+            if(!games[gameId].endOfGame)
+                games[gameId].currentPlayer=calculateNextPlayer(games[gameId].currentPlayer);
+
             pthread_mutex_unlock(&games[gameId].cerrojoTurno);
             pthread_cond_broadcast(&games[gameId].condTurno);
 
@@ -385,9 +426,10 @@ int blackJackns__playermove(struct soap *soap, int gameId, blackJackns__tMessage
             sprintf(mensaje, "\nTienes %d puntos, te has pasado.\n", calculatePoints(&games[gameId].player2Deck));
             copyGameStatusStructure(status, mensaje, &games[gameId].player2Deck, TURN_WAIT);
 
-            games[gameId].currentPlayer=calculateNextPlayer(games[gameId].currentPlayer);
-
             games[gameId].endOfGame=ambosHanJugado(gameId);
+            if(!games[gameId].endOfGame)
+                games[gameId].currentPlayer=calculateNextPlayer(games[gameId].currentPlayer);
+                
             pthread_mutex_unlock(&games[gameId].cerrojoTurno);
             pthread_cond_broadcast(&games[gameId].condTurno);
 
@@ -405,14 +447,18 @@ int blackJackns__playermove(struct soap *soap, int gameId, blackJackns__tMessage
             sprintf(mensaje, "\nTe plantas con %d puntos.\n", calculatePoints(&games[gameId].player2Deck));
             copyGameStatusStructure(status, mensaje, &games[gameId].player2Deck, TURN_WAIT);
         }
-        games[gameId].currentPlayer=calculateNextPlayer(games[gameId].currentPlayer);
-            
+
         games[gameId].endOfGame=ambosHanJugado(gameId);
+        if(!games[gameId].endOfGame)
+            games[gameId].currentPlayer=calculateNextPlayer(games[gameId].currentPlayer);
+                
         pthread_mutex_unlock(&games[gameId].cerrojoTurno);
         pthread_cond_broadcast(&games[gameId].condTurno);
-
         break;
     default:
+        printf("playermove: %d\n", playerMove);     
+        pthread_mutex_unlock(&games[gameId].cerrojoTurno);
+        pthread_cond_broadcast(&games[gameId].condTurno);
         break;
     }
     
@@ -423,7 +469,7 @@ void *processRequest(void *soap){
 
 	pthread_detach(pthread_self());
 
-	printf ("Processing a new request...");
+	printf ("Processing a new request...\n");
 
 	soap_serve((struct soap*)soap);
 	soap_destroy((struct soap*)soap);
