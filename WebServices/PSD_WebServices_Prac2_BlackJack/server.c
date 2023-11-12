@@ -201,13 +201,15 @@ int blackJackns__register (struct soap *soap, blackJackns__tMessage playerName, 
 
 
     gameIndex= buscaHueco();
+    printf("gameIndex: %d\n", gameIndex);//borrar
     
     if(gameIndex == ERROR_SERVER_FULL){
         printf("Servidor lleno, no se puede registrar\n");
         *result= ERROR_SERVER_FULL;
     }
     else{
-        if(buscaJugador(playerName.msg)==ERROR_PLAYER_NOT_FOUND){ //jugador no existe, se puede registrar       
+        if(buscaJugador(playerName.msg)==ERROR_PLAYER_NOT_FOUND){ //jugador no existe, se puede registrar      
+            printf("playerName: %s\n", playerName.msg);//borrar 
             if(games[gameIndex].status==gameEmpty){
                 strcpy(games[gameIndex].player1Name, playerName.msg);
                 games[gameIndex].status=gameWaitingPlayer;
@@ -271,10 +273,7 @@ int blackJackns__getStatus(struct soap *soap, int gameId, blackJackns__tMessage 
     int ganadorMano;
     int numJugador;
     char *mensaje;
-    printf("getStatus\n");
-    printf("playerName: %s\n", playerName.msg);
-    printf("currentPlayer: %d\n", games[gameId].currentPlayer);
-    printf("endOfGame: %d\n", games[gameId].endOfGame);
+
     allocClearBlock(soap, status);
     mensaje=malloc(sizeof(char)*STRING_LENGTH);
 
@@ -303,25 +302,25 @@ int blackJackns__getStatus(struct soap *soap, int gameId, blackJackns__tMessage 
                 if(ganadorMano==player1){
                     games[gameId].player1Stack+=games[gameId].player2Bet;
 
-                    sprintf(mensaje, "\nHas ganado la mano, tienes %d monedas.\n", games[gameId].player1Stack);
+                    sprintf(mensaje, "\nHas ganado la mano, tienes %d monedas.\nMazo ganador:", games[gameId].player1Stack);
                     copyGameStatusStructure(status, mensaje, &games[gameId].player1Deck, TURN_WAIT); 
                 }
                 else{
                     games[gameId].player1Stack-=games[gameId].player1Bet;
 
-                    sprintf(mensaje, "\nHas perdido la mano, tienes %d monedas.\n", games[gameId].player1Stack);
+                    sprintf(mensaje, "\nHas perdido la mano, tienes %d monedas.\nMazo ganador:", games[gameId].player1Stack);
                     copyGameStatusStructure(status, mensaje, &games[gameId].player2Deck, TURN_WAIT); 
                 }
             }else{
                 if(ganadorMano==player1){
                     games[gameId].player2Stack-=games[gameId].player2Bet;
-                    sprintf(mensaje, "\nHas perdido la mano, tienes %d monedas.\n", games[gameId].player2Stack);
+                    sprintf(mensaje, "\nHas perdido la mano, tienes %d monedas.\nMazo ganador:", games[gameId].player2Stack);
                     copyGameStatusStructure(status, mensaje, &games[gameId].player1Deck, TURN_WAIT); 
                 }
                 else{
                     games[gameId].player2Stack+=games[gameId].player1Bet;
 
-                    sprintf(mensaje, "\nHas ganado la mano, tienes %d monedas.\n", games[gameId].player2Stack);
+                    sprintf(mensaje, "\nHas ganado la mano, tienes %d monedas.\nMazo ganador:", games[gameId].player2Stack);
                     copyGameStatusStructure(status, mensaje, &games[gameId].player2Deck, TURN_WAIT); 
                 }
             }
