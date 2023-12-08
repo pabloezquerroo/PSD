@@ -92,3 +92,11 @@ void procesoMaster(int worldWidth, int worldHeight, int totalIterations, int dis
         }		
     }
 }
+
+void dynamicUpdateWorld(unsigned short *currentWorld, unsigned short *newWorld, int worldWidth, int worldHeight, int grain){
+    
+}
+
+void staticUpdateWorld (unsigned short *currentWorld, unsigned short *newWorld, int worldWidth, int worldHeight){
+
+}
