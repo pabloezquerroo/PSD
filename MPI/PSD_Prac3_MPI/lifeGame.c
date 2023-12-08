@@ -141,59 +141,12 @@ int main(int argc, char* argv[]){
 			startTime = MPI_Wtime();
 			
 			// TODO: Invoke the master subprogram
-			double startTimeIter, endTimeIter;
-			for (int iteration=1; iteration<=totalIterations && !isquit; iteration++){
-			
-				printf ("Processing iteration %d: ", iteration);
-
-				// Clear renderer			
-				SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0x00);
-				SDL_RenderClear(renderer);			
-		
-				// Start timer for this iteration
-				iterStartTime = MPI_Wtime();
-
-				// Swap worlds between iterations
-				if (iteration%2 == 1){		
-					if (distModeStatic){
-						staticMaster();
-					}
-					else{
-						dynamicMaster();
-					}
-				}
-				else{
-					if (distModeStatic){
-						staticMaster();
-					}
-					else{
-						dynamicMaster();
-					}
-				}
-				
-				// End timer for this iteration
-				iterEndTime = MPI_Wtime();
-				printf ("Iteration %d time: %f seconds\n", iteration, iterEndTime-iterStartTime);
-
-				//Update the surface
-				SDL_RenderPresent(renderer);
-				SDL_UpdateWindowSurface(window);					
-				
-				// Read event
-				if (SDL_PollEvent(& event)) 
-					if (event.type == SDL_QUIT) 
-						isquit = 1;			
-				
-				if (!autoMode){
-					printf ("Press Enter to continue...");
-					ch = getchar();
-				}		
-			}
+			procesoMaster(worldWidth, worldHeight, totalIterations, distModeStatic, autoMode, grainSize, renderer, window);
 
 			if(outputFile != NULL){
 				saveImage(renderer, outputFile,worldWidth * CELL_SIZE, worldHeight * CELL_SIZE);
 			}
-
+			
 			// Set timer
 			endTime = MPI_Wtime();
 			printf ("Total execution time:%f seconds\n", endTime-startTime);

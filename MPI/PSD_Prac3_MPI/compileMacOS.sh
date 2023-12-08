@@ -1,1 +1,1 @@
-mpicc -o lifeGame *.c -I/Library/Frameworks/SDL2.framework/Headers -F/Library/Frameworks -framework SDL2 -framework Cocoa
+mpicc -o lifeGame *.c -I/usr/local/Cellar/sdl2/2.28.5/include -L/usr/local/Cellar/sdl2/2.28.5/lib -lSDL2 -framework Cocoa
