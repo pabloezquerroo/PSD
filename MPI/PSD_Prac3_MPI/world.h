@@ -94,7 +94,16 @@ void clearWorld (unsigned short *w,
  */
 void calculateLonelyCell ();
 
+void updateWorld (unsigned short *currentWorld,
+					unsigned short *newWorld,
+					int worldWidth, 
+					int worldHeight);
 
+void updateCell (tCoordinate *cell, 
+				unsigned short* currentWorld,
+				unsigned short* newWorld,
+				int worldWidth, 
+				int worldHeight);
 #endif
 
 

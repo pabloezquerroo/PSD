@@ -118,6 +118,77 @@ void calculateLonelyCell (){
 	free (matrixC);
 }
 
+void updateCell (tCoordinate *cell, 
+				unsigned short* currentWorld,
+				unsigned short* newWorld,
+				int worldWidth, 
+				int worldHeight){
+	
+	int neighbours = 0;
+				
+		// Check up
+		if (getCellAtWorld(getCellUp(cell), currentWorld, worldWidth) == CELL_LIVE)
+			neighbours++;
+				
+		// Check down
+		if (getCellAtWorld(getCellDown(cell), currentWorld, worldWidth) == CELL_LIVE)
+			neighbours++;		
+			
+		// Check left
+		if (getCellAtWorld(getCellLeft(cell, worldWidth), currentWorld, worldWidth) == CELL_LIVE)
+			neighbours++;
+	
+		// Check right
+		if (getCellAtWorld(getCellRight(cell, worldWidth), currentWorld, worldWidth) == CELL_LIVE)
+			neighbours++;				
+		
+		// Check up-left
+		if (getCellAtWorld(getCellUp(getCellLeft(cell, worldWidth)), currentWorld, worldWidth) == CELL_LIVE)
+			neighbours++;		
+		
+		// Check up-right
+		if (getCellAtWorld(getCellUp(getCellRight(cell, worldWidth)), currentWorld, worldWidth) == CELL_LIVE)
+			neighbours++;
+		
+		// Check down-left
+		if (getCellAtWorld(getCellDown(getCellLeft(cell, worldWidth)), currentWorld, worldWidth) == CELL_LIVE)
+			neighbours++;
+		
+		// Check down-right
+		if (getCellAtWorld(getCellDown(getCellRight(cell, worldWidth)), currentWorld, worldWidth) == CELL_LIVE)
+			neighbours++;		
+		
+		// Lonely cell?
+		if (getCellAtWorld(cell, currentWorld, worldWidth) == CELL_EMPTY && (neighbours==0))
+			calculateLonelyCell();
+		
+		// Cell is still alive
+		if (getCellAtWorld(cell, currentWorld, worldWidth) == CELL_LIVE && ((neighbours==2) || (neighbours==3)))
+			setCellAt (cell, newWorld, worldWidth, CELL_LIVE);
+					
+		// New cell is born
+		else if (getCellAtWorld(cell, currentWorld, worldWidth) == CELL_EMPTY && (neighbours==3))
+			setCellAt (cell, newWorld, worldWidth, CELL_LIVE);
+		
+		// Cell is dead
+		else
+			setCellAt (cell, newWorld, worldWidth, CELL_EMPTY);							
+}
+
+void updateWorld (unsigned short *currentWorld,
+					unsigned short *newWorld,
+					int worldWidth, 
+					int worldHeight){
+	
+	tCoordinate cell;
+					
+	for (int col=0; col<worldWidth; col++)
+		for (int row=1; row<worldHeight-1; row++){
+			cell.row = row;
+			cell.col = col;
+			updateCell (&cell, currentWorld, newWorld, worldWidth, worldHeight);
+		}
+}
 
 
 

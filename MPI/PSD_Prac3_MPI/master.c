@@ -11,7 +11,7 @@ void procesoMaster(int worldWidth, int worldHeight, int totalIterations, int dis
 
     // User's input and events
 	char ch;
-	int isquit = 0;
+	int isquit = 0, hayCataclismo = 0;
 	SDL_Event event;
 
 	// Time
@@ -41,13 +41,15 @@ void procesoMaster(int worldWidth, int worldHeight, int totalIterations, int dis
 
     // Stop in iteration 0
     printf ("World created (iteration 0)\n");		
-    printf ("Press Enter to continue...");
+    printf ("Press Enter to continue...\n");
     ch = getchar();	
     
     // Update the world
     for (int iteration=1; iteration<=totalIterations && !isquit; iteration++){
-    	printf ("Processing iteration %d: ", iteration);
+    	printf ("Processing iteration %d: \n", iteration);
 
+        hayCataclismo = (rand()%100)<PROB_CATACLYSM;
+        
         // Clear renderer			
         SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0x00);
         SDL_RenderClear(renderer);		
@@ -58,17 +60,17 @@ void procesoMaster(int worldWidth, int worldHeight, int totalIterations, int dis
         // Swap worlds between iterations
         if (iteration%2 == 1){					 	
             if(distModeStatic == 1)
-                staticUpdateWorld (worldA, worldB, worldWidth, worldHeight);				
+                staticUpdateWorld (worldA, worldB, worldWidth, worldHeight, hayCataclismo);				
             else			 	
-                dynamicUpdateWorld(worldA, worldB, worldWidth, worldHeight, grain);	
+                dynamicUpdateWorld(worldA, worldB, worldWidth, worldHeight, grain, hayCataclismo);	
             drawWorld (worldA, worldB, renderer, 0, worldHeight - 1, worldWidth, worldHeight);	
             clearWorld (worldA, worldWidth, worldHeight);		
         }
         else{
             if(distModeStatic == 1)
-                staticUpdateWorld (worldB, worldA, worldWidth, worldHeight);				
+                staticUpdateWorld (worldB, worldA, worldWidth, worldHeight, hayCataclismo);				
             else			 	
-                dynamicUpdateWorld(worldB, worldA, worldWidth, worldHeight, grain);
+                dynamicUpdateWorld(worldB, worldA, worldWidth, worldHeight, grain, hayCataclismo);
             drawWorld (worldB, worldA, renderer, 0, worldHeight - 1, worldWidth, worldHeight);
             clearWorld (worldB, worldWidth, worldHeight);	
         }
@@ -91,12 +93,60 @@ void procesoMaster(int worldWidth, int worldHeight, int totalIterations, int dis
             ch = getchar();
         }		
     }
+
 }
 
-void dynamicUpdateWorld(unsigned short *currentWorld, unsigned short *newWorld, int worldWidth, int worldHeight, int grain){
-    
+void dynamicUpdateWorld(unsigned short *currentWorld, unsigned short *newWorld, int worldWidth, int worldHeight, int grain, int hayCataclismo){
+   
 }
 
-void staticUpdateWorld (unsigned short *currentWorld, unsigned short *newWorld, int worldWidth, int worldHeight){
+void staticUpdateWorld (unsigned short *currentWorld, unsigned short *newWorld, int worldWidth, int worldHeight, int hayCataclismo){
+    int size, grain, lineasRecv, filaActual, ultimoGrain, lineasLeidas;
+    unsigned short *area, *top, *bottom;
+    MPI_Comm_size( MPI_COMM_WORLD , &size);
+    int *tablaPunteros = (int*) malloc(size*sizeof(int));
+    MPI_Status status;
+    grain = worldHeight/(size - 1);
 
+    filaActual = 0;
+    area = currentWorld;
+    top = currentWorld + (worldWidth*(worldHeight-1));
+    bottom = currentWorld + (worldWidth*grain);
+    for(int i = 1; i < size-1; i++){
+        tablaPunteros[i] = filaActual;
+        MPI_Send(&grain, 1, MPI_INT, i, 0, MPI_COMM_WORLD);
+        MPI_Send(top, worldWidth, MPI_UNSIGNED_SHORT, i, 0, MPI_COMM_WORLD);
+        MPI_Send(area, worldWidth*grain, MPI_UNSIGNED_SHORT, i, 0, MPI_COMM_WORLD);
+        MPI_Send(bottom, worldWidth, MPI_UNSIGNED_SHORT, i, 0, MPI_COMM_WORLD);
+
+        filaActual += grain;
+        top = bottom - worldWidth;
+        area = bottom;
+        bottom = area + (worldWidth*grain); //el la ultima iteracion no vale para nada
+    }
+
+    tablaPunteros[size-1] = filaActual;
+    bottom = currentWorld;
+    ultimoGrain = grain + (worldHeight%grain);
+
+    MPI_Send(&ultimoGrain, 1, MPI_INT, size-1, 0, MPI_COMM_WORLD);
+    MPI_Send(top, worldWidth, MPI_UNSIGNED_SHORT, size-1, 0, MPI_COMM_WORLD);
+    MPI_Send(area, worldWidth*grain, MPI_UNSIGNED_SHORT, size-1, 0, MPI_COMM_WORLD);
+    MPI_Send(bottom, worldWidth, MPI_UNSIGNED_SHORT, size-1, 0, MPI_COMM_WORLD);
+
+    while(lineasLeidas<worldHeight){
+        MPI_Recv(&lineasRecv, 1, MPI_INT, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &status);
+        MPI_Recv(newWorld + ((tablaPunteros[status.MPI_SOURCE])*worldWidth), worldWidth*lineasRecv, MPI_UNSIGNED_SHORT, status.MPI_SOURCE, 0, MPI_COMM_WORLD, &status);
+        lineasLeidas+=lineasRecv;
+    }
+
+    free(tablaPunteros);
+}
+
+void endWorkers(){
+    int size;
+    int fin = 0;
+    MPI_Comm_size( MPI_COMM_WORLD, &size);
+    for(int i = 1; i<size; ++i)
+        MPI_Send(&fin, 1,MPI_INT,i,0,MPI_COMM_WORLD);
 }

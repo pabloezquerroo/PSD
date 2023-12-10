@@ -5,3 +5,4 @@
 #define DEBUG_WORKER 0
 
 
+void procesoWorker(int worldWidth, int worldHeight);

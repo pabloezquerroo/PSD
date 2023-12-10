@@ -1,6 +1,10 @@
 #include "master.h"
 #include "worker.h"
 #include "mpi.h"
+/*
+Ejecutar con:
+mpiexec -hostfile machines -np 4 ./lifeGame 30 30 50 step salida.bmp static
+*/
 
 /**
  * Shows an error message if the input parameters are not correct.
@@ -142,7 +146,7 @@ int main(int argc, char* argv[]){
 			
 			// TODO: Invoke the master subprogram
 			procesoMaster(worldWidth, worldHeight, totalIterations, distModeStatic, autoMode, grainSize, renderer, window);
-
+			
 			if(outputFile != NULL){
 				saveImage(renderer, outputFile,worldWidth * CELL_SIZE, worldHeight * CELL_SIZE);
 			}
@@ -156,6 +160,7 @@ int main(int argc, char* argv[]){
 		// Workers
 		else
 			// TODO: Invoke the worker subprogram
+			procesoWorker(worldWidth, worldHeight);
 
     return 0;
 }
