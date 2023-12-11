@@ -5,7 +5,7 @@
 #define DEBUG_MASTER 1
 
 // Probability that a cataclysm may occur [0-100] :(
-#define PROB_CATACLYSM 100
+#define PROB_CATACLYSM 10
 
 // Number of iterations between two possible cataclysms
 #define ITER_CATACLYSM 5

@@ -57,6 +57,15 @@ void procesoMaster(int worldWidth, int worldHeight, int totalIterations, int dis
         // Set timer for this iteration
         iterStartTime = MPI_Wtime();
 
+        if (hayCataclismo){
+            for(int i = 0; i < worldHeight; i++){
+                worldA[i*worldWidth] = CELL_CATACLYSM;
+                worldB[i*worldWidth] = CELL_EMPTY;
+                worldA[(i*worldWidth)+worldWidth-1] = CELL_CATACLYSM;
+                worldB[(i*worldWidth)+worldWidth-1] = CELL_EMPTY;
+            }
+        }
+
         // Swap worlds between iterations
         if (iteration%2 == 1){					 	
             if(distModeStatic == 1)
