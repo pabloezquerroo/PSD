@@ -106,11 +106,75 @@ void procesoMaster(int worldWidth, int worldHeight, int totalIterations, int dis
 }
 
 void dynamicUpdateWorld(unsigned short *currentWorld, unsigned short *newWorld, int worldWidth, int worldHeight, int grain, int hayCataclismo){
-   
+    int size, filaActual, filasSend = 0, filasLeidas = 0, filasRecv = 0;
+    unsigned short *area, *top, *bottom;
+    MPI_Comm_size( MPI_COMM_WORLD , &size);
+    int *tablaPunteros = (int*) malloc(size*sizeof(int));
+    MPI_Status status;
+
+    filaActual = 0;
+    area = currentWorld;
+    top = currentWorld + (worldWidth*(worldHeight-1));
+    bottom = currentWorld + (worldWidth*grain);
+    for (int i = 1; i < size; i++){
+        tablaPunteros[i] = filaActual;
+        if ((filasSend+grain) < worldHeight){
+            filasSend+=grain;
+            MPI_Send(&grain, 1, MPI_INT, i, 0, MPI_COMM_WORLD);
+            MPI_Send(top, worldWidth, MPI_UNSIGNED_SHORT, i, 0, MPI_COMM_WORLD);
+            MPI_Send(area, worldWidth*grain, MPI_UNSIGNED_SHORT, i, 0, MPI_COMM_WORLD);
+            MPI_Send(bottom, worldWidth, MPI_UNSIGNED_SHORT, i, 0, MPI_COMM_WORLD);
+
+            filaActual += grain;
+            top = bottom - worldWidth;
+            area = bottom;
+            bottom = area + (worldWidth*grain);
+        }else{
+            int ultimoGrain = worldHeight - filasSend;
+            filasSend+=ultimoGrain;
+            bottom = currentWorld;
+            MPI_Send(&ultimoGrain, 1, MPI_INT, i, 0, MPI_COMM_WORLD);
+            MPI_Send(top, worldWidth, MPI_UNSIGNED_SHORT, i, 0, MPI_COMM_WORLD);
+            MPI_Send(area, worldWidth*ultimoGrain, MPI_UNSIGNED_SHORT, i, 0, MPI_COMM_WORLD);
+            MPI_Send(bottom, worldWidth, MPI_UNSIGNED_SHORT, i, 0, MPI_COMM_WORLD);
+        }
+    }
+
+    while(filasLeidas<worldHeight){
+        MPI_Recv(&filasRecv, 1, MPI_INT, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &status);
+        MPI_Recv(newWorld + ((tablaPunteros[status.MPI_SOURCE])*worldWidth), worldWidth*filasRecv, MPI_UNSIGNED_SHORT, status.MPI_SOURCE, 0, MPI_COMM_WORLD, &status);
+        filasLeidas+=filasRecv;
+        if (filasSend < worldHeight){
+            tablaPunteros[status.MPI_SOURCE] = filaActual;
+            if ((filasSend+grain) < worldHeight){
+                filasSend+=grain;
+                MPI_Send(&grain, 1, MPI_INT,  status.MPI_SOURCE, 0, MPI_COMM_WORLD);
+                MPI_Send(top, worldWidth, MPI_UNSIGNED_SHORT,  status.MPI_SOURCE, 0, MPI_COMM_WORLD);
+                MPI_Send(area, worldWidth*grain, MPI_UNSIGNED_SHORT,  status.MPI_SOURCE, 0, MPI_COMM_WORLD);
+                MPI_Send(bottom, worldWidth, MPI_UNSIGNED_SHORT,  status.MPI_SOURCE, 0, MPI_COMM_WORLD);
+
+                filaActual += grain;
+                top = bottom - worldWidth;
+                area = bottom;
+                bottom = area + (worldWidth*grain);
+            }else{
+                int ultimoGrain = worldHeight - filasSend;
+                filasSend+=ultimoGrain;
+                bottom = currentWorld;
+                MPI_Send(&ultimoGrain, 1, MPI_INT,  status.MPI_SOURCE, 0, MPI_COMM_WORLD);
+                MPI_Send(top, worldWidth, MPI_UNSIGNED_SHORT,  status.MPI_SOURCE, 0, MPI_COMM_WORLD);
+                MPI_Send(area, worldWidth*ultimoGrain, MPI_UNSIGNED_SHORT,  status.MPI_SOURCE, 0, MPI_COMM_WORLD);
+                MPI_Send(bottom, worldWidth, MPI_UNSIGNED_SHORT,  status.MPI_SOURCE, 0, MPI_COMM_WORLD);
+            }
+        }
+    }
+
+    free(tablaPunteros);
+
 }
 
 void staticUpdateWorld (unsigned short *currentWorld, unsigned short *newWorld, int worldWidth, int worldHeight, int hayCataclismo){
-    int size, grain, lineasRecv, filaActual, ultimoGrain, lineasLeidas;
+    int size, grain, lineasRecv = 0, filaActual, ultimoGrain, lineasLeidas = 0;
     unsigned short *area, *top, *bottom;
     MPI_Comm_size( MPI_COMM_WORLD , &size);
     int *tablaPunteros = (int*) malloc(size*sizeof(int));
@@ -133,14 +197,13 @@ void staticUpdateWorld (unsigned short *currentWorld, unsigned short *newWorld, 
         area = bottom;
         bottom = area + (worldWidth*grain); //el la ultima iteracion no vale para nada
     }
-
     tablaPunteros[size-1] = filaActual;
     bottom = currentWorld;
-    ultimoGrain = grain + (worldHeight%grain);
+    ultimoGrain = worldHeight - filaActual;
 
     MPI_Send(&ultimoGrain, 1, MPI_INT, size-1, 0, MPI_COMM_WORLD);
     MPI_Send(top, worldWidth, MPI_UNSIGNED_SHORT, size-1, 0, MPI_COMM_WORLD);
-    MPI_Send(area, worldWidth*grain, MPI_UNSIGNED_SHORT, size-1, 0, MPI_COMM_WORLD);
+    MPI_Send(area, worldWidth*ultimoGrain, MPI_UNSIGNED_SHORT, size-1, 0, MPI_COMM_WORLD);
     MPI_Send(bottom, worldWidth, MPI_UNSIGNED_SHORT, size-1, 0, MPI_COMM_WORLD);
 
     while(lineasLeidas<worldHeight){

@@ -4,7 +4,6 @@ void procesoWorker(int worldWidth, int worldHeight){
     int grain;
     unsigned short *currentWorld, *newWorld;
     MPI_Status status;
-    printf("Worker\n");
     MPI_Recv(&grain, 1, MPI_INT, MASTER, 0, MPI_COMM_WORLD, &status);    
     while(grain != 0){
         currentWorld = (unsigned short*) malloc (worldWidth * (grain+2) * sizeof (unsigned short));
@@ -25,7 +24,7 @@ void procesoWorker(int worldWidth, int worldHeight){
 
         MPI_Send(&grain, 1, MPI_INT, MASTER, 0, MPI_COMM_WORLD);
         MPI_Send(newWorld+worldWidth,grain*worldWidth, MPI_UNSIGNED_SHORT, MASTER, 0, MPI_COMM_WORLD);
-        MPI_Recv(&grain, 1, MPI_INT, MASTER, 0, MPI_COMM_WORLD, &status);    
+        MPI_Recv(&grain, 1, MPI_INT, MASTER, 0, MPI_COMM_WORLD, &status);  
     }
 
 }
