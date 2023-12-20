@@ -1,5 +1,17 @@
 #include "master.h"
 
+void cataclismo(unsigned short *currentWorld, unsigned short *newWorld, int worldWidth, int worldHeight, int hayCataclismo){
+    printf("hayCataclismo: %d\n", hayCataclismo);
+    if (hayCataclismo){
+        for(int i = 0; i < worldHeight; i++){
+                currentWorld[i*worldWidth] = CELL_CATACLYSM;
+                newWorld[i*worldWidth] = CELL_EMPTY;
+                currentWorld[(i*worldWidth)+worldWidth-1] = CELL_CATACLYSM;
+                newWorld[(i*worldWidth)+worldWidth-1] = CELL_EMPTY;
+        }
+    }
+}
+
 void procesoMaster(int worldWidth, int worldHeight, int totalIterations, int distModeStatic, int autoMode, int grain, SDL_Renderer* renderer, SDL_Window* window){
     
 	// The surface where the cells are drawn
@@ -45,10 +57,17 @@ void procesoMaster(int worldWidth, int worldHeight, int totalIterations, int dis
     ch = getchar();	
     
     // Update the world
+    int iterCataclismo = 1;
     for (int iteration=1; iteration<=totalIterations && !isquit; iteration++){
     	printf ("Processing iteration %d: \n", iteration);
-
-        hayCataclismo = (rand()%100)<PROB_CATACLYSM;
+        printf("iterCataclismo: %d\n", iterCataclismo);
+        if (iterCataclismo == ITER_CATACLYSM){
+            hayCataclismo = (rand()%100)<PROB_CATACLYSM;
+            iterCataclismo = 1;
+        }else{
+            hayCataclismo = 0;
+            iterCataclismo++;
+        }
         
         // Clear renderer			
         SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0x00);
@@ -57,17 +76,9 @@ void procesoMaster(int worldWidth, int worldHeight, int totalIterations, int dis
         // Set timer for this iteration
         iterStartTime = MPI_Wtime();
 
-        if (hayCataclismo){
-            for(int i = 0; i < worldHeight; i++){
-                worldA[i*worldWidth] = CELL_CATACLYSM;
-                worldB[i*worldWidth] = CELL_EMPTY;
-                worldA[(i*worldWidth)+worldWidth-1] = CELL_CATACLYSM;
-                worldB[(i*worldWidth)+worldWidth-1] = CELL_EMPTY;
-            }
-        }
-
         // Swap worlds between iterations
-        if (iteration%2 == 1){					 	
+        if (iteration%2 == 1){	
+            cataclismo(worldA, worldB, worldWidth, worldHeight, hayCataclismo);
             if(distModeStatic == 1)
                 staticUpdateWorld (worldA, worldB, worldWidth, worldHeight, hayCataclismo);				
             else			 	
@@ -76,6 +87,7 @@ void procesoMaster(int worldWidth, int worldHeight, int totalIterations, int dis
             clearWorld (worldA, worldWidth, worldHeight);		
         }
         else{
+            cataclismo(worldB, worldA, worldWidth, worldHeight, hayCataclismo);
             if(distModeStatic == 1)
                 staticUpdateWorld (worldB, worldA, worldWidth, worldHeight, hayCataclismo);				
             else			 	

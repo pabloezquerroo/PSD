@@ -3,7 +3,7 @@
 #include "mpi.h"
 /*
 Ejecutar con:
-mpiexec -hostfile machines -np 4 ./lifeGame 30 30 50 step salida.bmp static
+mpiexec -hostfile machines -np 4 ./lifeGame 20 20 30 step salida.bmp static
 */
 
 /**
