@@ -206,36 +206,36 @@ int main(int argc, char *argv[]){
 	fgets(playerName, STRING_LENGTH-1, stdin);
 
 	// Send message to the server side
-			unsigned int tamNombre= sizeof(playerName);
-			send(socketfd, &tamNombre , sizeof(int), 0);
+	unsigned int tamNombre= sizeof(playerName);
+	send(socketfd, &tamNombre , sizeof(int), 0);
 	nameLength = send(socketfd, &playerName, strlen(playerName), 0);
 
-			// Check the number of bytes sent
+	// Check the number of bytes sent
 	if (nameLength < 0)
 		showError("ERROR while writing to the socket");
 
 
-			while(!endOfGame){
-					recv(socketfd, &turno, sizeof(turno), 0);
-					recv(socketfd, &tamMensaje, 4, 0);
-					recv(socketfd, &mensaje, tamMensaje, 0);
-					recv(socketfd, &deck, sizeof(deck), 0);    
-					printf("%s\n",mensaje);
-					if(turno==TURN_BET){
-							tocaApostar(socketfd);
-							system("clear");
-					}else if(turno==TURN_PLAY){             // juegas
-							printFancyDeck(&deck);
-							tocaJugar(socketfd);
-					}else if(turno==TURN_GAME_WIN || turno==TURN_GAME_LOSE){
-							endOfGame=TRUE;
-					}else if(turno==TURN_PLAY_WAIT){
-							printf("Deck rival: ");
-							printFancyDeck(&deck);
-					}           
-			}
+	while(!endOfGame){
+		recv(socketfd, &turno, sizeof(turno), 0);
+		recv(socketfd, &tamMensaje, 4, 0);
+		recv(socketfd, &mensaje, tamMensaje, 0);
+		recv(socketfd, &deck, sizeof(deck), 0);    
+		printf("%s\n",mensaje);
+		if(turno==TURN_BET){
+				tocaApostar(socketfd);
+				system("clear");
+		}else if(turno==TURN_PLAY){             // juegas
+				printFancyDeck(&deck);
+				tocaJugar(socketfd);
+		}else if(turno==TURN_GAME_WIN || turno==TURN_GAME_LOSE){
+				endOfGame=TRUE;
+		}else if(turno==TURN_PLAY_WAIT){
+				printf("Deck rival: ");
+				printFancyDeck(&deck);
+		}           
+	}
 
-			close(socketfd);
+	close(socketfd);
 		
 }
 
