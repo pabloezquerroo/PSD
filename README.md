@@ -1,5 +1,4 @@
 # PSD
-
 Programación de Sistemas Distribuidos
 
 * SOCKETS -> Juego de Black Jack ([PDF](Sockets/PSD_Sockets_Prac1_BlackJack/Practica%201.pdf))
